@@ -142,13 +142,17 @@ window.AIChatFlow = {
         0;
     }
 
-    InfinityAI.state.district =
-      ai.district ||
-      previous.district ||
-      InfinityAI.state.district ||
-      this.extractDistrict(userMessage) ||
-      '';
+    var normalizedAIDistrict = this.normalizeDistrict(ai.district);
+var normalizedPreviousDistrict = this.normalizeDistrict(previous.district);
+var normalizedCurrentDistrict = this.normalizeDistrict(InfinityAI.state.district);
+var normalizedMessageDistrict = this.extractDistrict(userMessage);
 
+InfinityAI.state.district =
+  normalizedAIDistrict ||
+  normalizedPreviousDistrict ||
+  normalizedCurrentDistrict ||
+  normalizedMessageDistrict ||
+  '';
     var oldPreferences =
       InfinityAI.state.preferences || previous.preferences || '';
 
@@ -174,37 +178,138 @@ window.AIChatFlow = {
   },
 
   extractBudget: function(message) {
-    var text = (message || '').toLowerCase();
-    var numbers = text.match(/\d[\d\s.]*/g);
+  var text = (message || '').toString().toLowerCase();
 
-    if (!numbers) return 0;
+  var kMatch = text.match(/(\d+(?:[.,]\d+)?)\s*k/);
+  if (kMatch) {
+    return Math.round(Number(kMatch[1].replace(',', '.')) * 1000);
+  }
 
-    for (var i = 0; i < numbers.length; i++) {
-      var n = Number(numbers[i].replace(/\s/g, '').replace(/\./g, ''));
-      if (!isNaN(n) && n >= 10000) return n;
-    }
+  var numbers = text.match(/\d[\d\s.,]*/g);
 
-    return 0;
-  },
+  if (!numbers) return 0;
+
+  for (var i = 0; i < numbers.length; i++) {
+    var n = Number(
+      numbers[i]
+        .replace(/\s/g, '')
+        .replace(/\./g, '')
+        .replace(/,/g, '')
+    );
+
+    if (!isNaN(n) && n >= 10000) return n;
+  }
+
+  return 0;
+},
 
   extractRooms: function(message) {
-    var text = (message || '').toLowerCase();
+  var text = (message || '').toString().toLowerCase();
 
-    if (text.includes('jednosoban') || text.includes('однособ') || text.includes('1 sob')) return 1;
-    if (text.includes('dvosoban') || text.includes('двухкомнат') || text.includes('2 sob')) return 2;
-    if (text.includes('trosoban') || text.includes('трехкомнат') || text.includes('трёхкомнат') || text.includes('3 sob')) return 3;
+  if (
+    text.includes('jednosoban') ||
+    text.includes('jedna soba') ||
+    text.includes('однособ') ||
+    text.includes('1 sob') ||
+    text.includes('one bedroom') ||
+    text.includes('one-bedroom') ||
+    text.includes('1 bedroom') ||
+    text.includes('1-bedroom')
+  ) return 1;
 
-    var numbers = text.match(/\d[\d\s.]*/g);
-    if (!numbers) return 0;
+  if (
+    text.includes('dvosoban') ||
+    text.includes('dve sobe') ||
+    text.includes('двухкомнат') ||
+    text.includes('2 sob') ||
+    text.includes('two bedroom') ||
+    text.includes('two-bedroom') ||
+    text.includes('2 bedroom') ||
+    text.includes('2-bedroom')
+  ) return 2;
 
-    for (var i = 0; i < numbers.length; i++) {
-      var n = Number(numbers[i].replace(/\s/g, '').replace(/\./g, ''));
-      if (!isNaN(n) && n > 0 && n <= 10) return n;
-    }
+  if (
+    text.includes('trosoban') ||
+    text.includes('tri sobe') ||
+    text.includes('трехкомнат') ||
+    text.includes('трёхкомнат') ||
+    text.includes('3 sob') ||
+    text.includes('three bedroom') ||
+    text.includes('three-bedroom') ||
+    text.includes('3 bedroom') ||
+    text.includes('3-bedroom')
+  ) return 3;
 
-    return 0;
-  },
+  if (
+    text.includes('four bedroom') ||
+    text.includes('four-bedroom') ||
+    text.includes('4 bedroom') ||
+    text.includes('4-bedroom') ||
+    text.includes('četvorosoban') ||
+    text.includes('cetvorosoban')
+  ) return 4;
 
+  var numbers = text.match(/\d[\d\s.,]*/g);
+  if (!numbers) return 0;
+
+  for (var i = 0; i < numbers.length; i++) {
+    var n = Number(
+      numbers[i]
+        .replace(/\s/g, '')
+        .replace(/\./g, '')
+        .replace(/,/g, '')
+    );
+
+    if (!isNaN(n) && n > 0 && n <= 10) return n;
+  }
+
+  return 0;
+},
+
+normalizeDistrict: function(value) {
+  var text = (value || '').toString().toLowerCase();
+
+  if (!text) return '';
+
+  if (text.includes('centar') || text.includes('center') || text.includes('centre') || text.includes('центр')) {
+    return 'NOVI SAD CENTAR';
+  }
+
+  if (text.includes('liman') || text.includes('лиман')) {
+    return 'NOVI SAD LIMAN';
+  }
+
+  if (text.includes('telep') || text.includes('телеп')) {
+    return 'NOVI SAD TELEP';
+  }
+
+  if (text.includes('podbara') || text.includes('подбара')) {
+    return 'NOVI SAD PODBARA';
+  }
+
+  if (text.includes('detelinara') || text.includes('детелинара')) {
+    return 'NOVI SAD DETELINARA';
+  }
+
+  if (text.includes('grbavica')) {
+    return 'NOVI SAD GRBAVICA';
+  }
+
+  if (text.includes('novo naselje')) {
+    return 'NOVI SAD NOVO NASELJE';
+  }
+
+  if (
+    text.includes('novi sad') ||
+    text.includes('novom sadu') ||
+    text.includes('нови сад') ||
+    text.includes('новом саду')
+  ) {
+    return 'NOVI SAD';
+  }
+
+  return value || '';
+},
   extractDistrict: function(message) {
     var text = (message || '').toLowerCase();
 
