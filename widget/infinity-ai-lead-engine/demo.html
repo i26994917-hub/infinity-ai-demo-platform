@@ -1,115 +1,629 @@
 <!DOCTYPE html>
 <html lang="sr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Infinity AI Lead Engine Demo</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <link rel="stylesheet" href="./widget.css">
+  <title>Infinity AI — Live AI Sales Consultant Demo</title>
+
+  <meta
+    name="description"
+    content="Infinity AI — AI sales consultant that converts website visitors into qualified leads."
+  />
+
+  <link rel="stylesheet" href="./widget.css" />
 
   <style>
-    body {
+    * {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f7fa;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    header {
-      background: #111827;
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: Inter, Arial, sans-serif;
+      background:
+        radial-gradient(circle at 15% 5%, rgba(37, 99, 235, 0.32), transparent 30%),
+        radial-gradient(circle at 85% 10%, rgba(96, 165, 250, 0.22), transparent 28%),
+        linear-gradient(180deg, #05070d, #0b1020 45%, #05070d);
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      height: 78px;
+      padding: 0 7vw;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(5, 7, 13, 0.78);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #2563eb, #60a5fa);
+      font-size: 26px;
+    }
+
+    .brand small {
+      display: block;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0;
+      margin-top: 2px;
+    }
+
+    .nav {
+      display: flex;
+      gap: 28px;
+    }
+
+    .nav a {
+      color: #aab6ca;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .nav a:hover {
       color: white;
-      padding: 20px 40px;
+    }
+
+    .lang {
+      display: flex;
+      gap: 8px;
+    }
+
+    .lang button {
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.07);
+      color: white;
+      padding: 9px 13px;
+      border-radius: 999px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .lang button.active {
+      background: white;
+      color: #0b1020;
     }
 
     .hero {
-      padding: 70px 20px;
-      text-align: center;
+      min-height: calc(100vh - 78px);
+      padding: 90px 7vw 70px;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 70px;
+      align-items: center;
+      max-width: 1500px;
+      margin: 0 auto;
     }
 
-    .hero h1 {
-      font-size: 42px;
+    .badge {
+      display: inline-flex;
+      padding: 10px 15px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.14);
+      border: 1px solid rgba(96, 165, 250, 0.28);
+      color: #bfdbfe;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: clamp(48px, 6vw, 82px);
+      line-height: 0.96;
+      letter-spacing: -0.075em;
+      max-width: 820px;
+      margin-bottom: 28px;
+    }
+
+    .hero-text {
+      font-size: 20px;
+      line-height: 1.7;
+      color: #aab6ca;
+      max-width: 720px;
+      margin-bottom: 34px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 34px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 50px;
+      padding: 0 22px;
+      border-radius: 14px;
+      text-decoration: none;
+      font-weight: 900;
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #60a5fa);
+      color: white;
+      box-shadow: 0 20px 55px rgba(37,99,235,.35);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,.08);
+      color: white;
+    }
+
+    .checks {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 14px;
+      max-width: 720px;
+    }
+
+    .check {
+      padding: 15px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.065);
+      border: 1px solid rgba(255,255,255,.1);
+      color: #dbeafe;
+      font-weight: 700;
+    }
+
+    .live-card {
+      border-radius: 32px;
+      padding: 32px;
+      background: rgba(255,255,255,.075);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 35px 100px rgba(0,0,0,.45);
+      backdrop-filter: blur(22px);
+    }
+
+    .live-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: #86efac;
+      font-weight: 900;
+      font-size: 13px;
       margin-bottom: 20px;
     }
 
-    .hero p {
-      font-size: 20px;
-      max-width: 720px;
-      margin: 0 auto;
-      color: #4b5563;
-      line-height: 1.5;
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 8px rgba(34,197,94,.12);
     }
 
-    .cards {
+    .live-card h2 {
+      font-size: 38px;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      margin-bottom: 18px;
+    }
+
+    .live-card p {
+      color: #aab6ca;
+      font-size: 17px;
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .industry-select {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
-      padding: 40px;
+      gap: 10px;
     }
 
-    .card {
-      background: white;
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    .industry-select label {
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 800;
     }
 
-    .card img {
+    .industry-select select {
       width: 100%;
-      height: 220px;
-      object-fit: cover;
+      padding: 15px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(15,23,42,.92);
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
     }
 
-    .card-body {
-      padding: 20px;
+    .section {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 76px 7vw;
     }
 
-    .price {
-      color: #2563eb;
-      font-size: 28px;
-      font-weight: bold;
-      margin-bottom: 8px;
+    .section-head {
+      max-width: 780px;
+      margin-bottom: 30px;
+    }
+
+    .section-head span {
+      color: #93c5fd;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+
+    .section-head h2 {
+      font-size: clamp(34px, 4.2vw, 58px);
+      line-height: 1.05;
+      letter-spacing: -0.055em;
+      margin-top: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-head p {
+      color: #aab6ca;
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .industries {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+    }
+
+    .industry-card {
+      padding: 22px;
+      min-height: 160px;
+      border-radius: 24px;
+      background: rgba(255,255,255,.065);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+
+    .industry-card strong {
+      display: block;
+      font-size: 20px;
+      margin: 12px 0 8px;
+    }
+
+    .industry-card p {
+      color: #aab6ca;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .step {
+      padding: 24px;
+      border-radius: 24px;
+      background: rgba(255,255,255,.065);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+
+    .step b {
+      color: #93c5fd;
+      font-size: 14px;
+    }
+
+    .step h3 {
+      margin: 14px 0 8px;
+      font-size: 21px;
+    }
+
+    .step p {
+      color: #aab6ca;
+      line-height: 1.6;
+    }
+
+    .pricing {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .plan {
+      padding: 28px;
+      border-radius: 26px;
+      background: rgba(255,255,255,.065);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+
+    .plan.featured {
+      outline: 2px solid rgba(96,165,250,.65);
+      background: rgba(37,99,235,.12);
+    }
+
+    .plan h3 {
+      font-size: 24px;
+    }
+
+    .plan strong {
+      display: block;
+      font-size: 44px;
+      margin: 14px 0;
+      letter-spacing: -0.04em;
+    }
+
+    .plan p {
+      color: #aab6ca;
+      line-height: 1.6;
+    }
+
+    footer {
+      padding: 36px 7vw;
+      text-align: center;
+      color: #64748b;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+
+    @media (max-width: 1050px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .industries {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .steps,
+      .pricing {
+        grid-template-columns: 1fr;
+      }
+
+      .nav {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        padding: 0 18px;
+      }
+
+      .brand small {
+        display: none;
+      }
+
+      .hero,
+      .section {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .checks,
+      .industries {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 
 <body>
 
-<header>
-  <h2>House Nekretnine</h2>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">∞</div>
+    <div>
+      <div>Infinity AI</div>
+      <small data-sr="AI prodajni konsultant" data-en="AI Sales Consultant">AI prodajni konsultant</small>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <a href="#demo" data-sr="Demo" data-en="Demo">Demo</a>
+    <a href="#industries" data-sr="Industrije" data-en="Industries">Industrije</a>
+    <a href="#how" data-sr="Kako radi" data-en="How it works">Kako radi</a>
+    <a href="#pricing" data-sr="Cene" data-en="Pricing">Cene</a>
+  </nav>
+
+  <div class="lang">
+    <button id="srBtn" class="active">SR</button>
+    <button id="enBtn">EN</button>
+  </div>
 </header>
 
-<section class="hero">
-  <h1>Nekretnine u Novom Sadu</h1>
-  <p>
-    AI konsultant pomaže posetiocima sajta da brzo ostave kvalitetan zahtev,
-    a agent odmah dobija lead u Telegramu.
-  </p>
-</section>
+<main>
+  <section class="hero" id="demo">
+    <div>
+      <div class="badge" data-sr="UŽIVO DEMO" data-en="LIVE DEMO">UŽIVO DEMO</div>
 
-<section class="cards">
-  <div class="card">
-    <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200" alt="">
-    <div class="card-body">
-      <div class="price">€136 000</div>
-      <div>Telep · 49 m² · 2 sobe</div>
-    </div>
-  </div>
+      <h1
+        data-sr="AI koji pretvara posetioce sajta u nove klijente."
+        data-en="AI that converts website visitors into qualified customers."
+      >
+        AI koji pretvara posetioce sajta u nove klijente.
+      </h1>
 
-  <div class="card">
-    <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200" alt="">
-    <div class="card-body">
-      <div class="price">€142 000</div>
-      <div>Cara Dušana · 43 m² · 2 sobe</div>
-    </div>
-  </div>
+      <p
+        class="hero-text"
+        data-sr="AI prodajni konsultant koji radi 24/7, odgovara na pitanja, kvalifikuje kupce i automatski šalje lead vašem timu."
+        data-en="AI sales consultant that works 24/7, answers questions, qualifies prospects and automatically sends leads to your team."
+      >
+        AI prodajni konsultant koji radi 24/7, odgovara na pitanja, kvalifikuje kupce i automatski šalje lead vašem timu.
+      </p>
 
-  <div class="card">
-    <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200" alt="">
-    <div class="card-body">
-      <div class="price">€133 700</div>
-      <div>Podbara · 40 m² · 2 sobe</div>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#" onclick="document.querySelector('.infinity-ai-button')?.click(); return false;" data-sr="Isprobajte LIVE demo" data-en="Try LIVE demo">
+          Isprobajte LIVE demo
+        </a>
+        <a class="btn btn-secondary" href="#industries" data-sr="Pogledajte industrije" data-en="See industries">
+          Pogledajte industrije
+        </a>
+      </div>
+
+      <div class="checks">
+        <div class="check" data-sr="✔ Radi 24/7" data-en="✔ Works 24/7">✔ Radi 24/7</div>
+        <div class="check" data-sr="✔ AI kvalifikacija" data-en="✔ AI qualification">✔ AI kvalifikacija</div>
+        <div class="check" data-sr="✔ Telegram obaveštenja" data-en="✔ Telegram notifications">✔ Telegram obaveštenja</div>
+        <div class="check" data-sr="✔ CRM integracija" data-en="✔ CRM integration">✔ CRM integracija</div>
+      </div>
     </div>
-  </div>
-</section>
+
+    <div class="live-card">
+      <div class="live-label">
+        <span class="dot"></span>
+        <span data-sr="STVARAN AI" data-en="REAL AI">STVARAN AI</span>
+      </div>
+
+      <h2
+        data-sr="Ovo nije simulacija."
+        data-en="This is not a simulation."
+      >
+        Ovo nije simulacija.
+      </h2>
+
+      <p
+        data-sr="AI zaista razgovara sa posetiocima, pretražuje podatke, kvalifikuje klijente i šalje lead direktno agentu."
+        data-en="The AI really talks to visitors, searches data, qualifies customers and sends the lead directly to your team."
+      >
+        AI zaista razgovara sa posetiocima, pretražuje podatke, kvalifikuje klijente i šalje lead direktno agentu.
+      </p>
+
+      <div class="industry-select">
+        <label data-sr="Demo industrija" data-en="Demo industry">Demo industrija</label>
+        <select>
+          <option>🏢 Nekretnine / Real Estate</option>
+          <option>🏗 Investitori / Developers</option>
+          <option>🚗 Auto saloni / Auto Dealers</option>
+          <option>🏥 Klinike / Clinics</option>
+          <option>🦷 Stomatologija / Dental</option>
+          <option>⚖ Advokati / Lawyers</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="industries">
+    <div class="section-head">
+      <span data-sr="Industrije" data-en="Industries">Industrije</span>
+      <h2 data-sr="Jedna AI platforma za više od 10 industrija." data-en="One AI platform for 10+ industries.">
+        Jedna AI platforma za više od 10 industrija.
+      </h2>
+      <p data-sr="Infinity AI se može prilagoditi za nekretnine, investitore, auto salone, klinike, stomatologe, advokate i druge uslužne biznise." data-en="Infinity AI can be adapted for real estate, developers, auto dealers, clinics, dentists, lawyers and other service businesses.">
+        Infinity AI se može prilagoditi za nekretnine, investitore, auto salone, klinike, stomatologe, advokate i druge uslužne biznise.
+      </p>
+    </div>
+
+    <div class="industries">
+      <div class="industry-card"><div>🏢</div><strong>Nekretnine</strong><p>Pretraga objekata, kvalifikacija kupaca, zakazivanje gledanja.</p></div>
+      <div class="industry-card"><div>🏗</div><strong>Investitori</strong><p>Prodaja stanova u novogradnji, pitanja o projektu i cenama.</p></div>
+      <div class="industry-card"><div>🚗</div><strong>Auto saloni</strong><p>Preporuka vozila, trade-in, zakazivanje test vožnje.</p></div>
+      <div class="industry-card"><div>🏥</div><strong>Klinike</strong><p>Zakazivanje pregleda, osnovna pitanja i unos kontakta.</p></div>
+      <div class="industry-card"><div>🦷</div><strong>Stomatologija</strong><p>Konsultacije, okvirna procena usluge i zakazivanje termina.</p></div>
+      <div class="industry-card"><div>⚖</div><strong>Advokati</strong><p>Kvalifikacija slučaja i zakazivanje konsultacije.</p></div>
+      <div class="industry-card"><div>🏨</div><strong>Hoteli</strong><p>Upiti za rezervacije, događaje i dodatne usluge.</p></div>
+      <div class="industry-card"><div>🎓</div><strong>Edukacija</strong><p>Prijave za kurseve, pitanja o programu i terminima.</p></div>
+      <div class="industry-card"><div>🛒</div><strong>Maloprodaja</strong><p>Preporuka proizvoda, dostupnost i kontakt za prodaju.</p></div>
+      <div class="industry-card"><div>💼</div><strong>Osiguranje</strong><p>Kvalifikacija zahteva i slanje podataka agentu.</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <div class="section-head">
+      <span data-sr="Kako radi" data-en="How it works">Kako radi</span>
+      <h2 data-sr="Od posete sajtu do novog leada za nekoliko minuta." data-en="From website visit to qualified lead in minutes.">
+        Od posete sajtu do novog leada za nekoliko minuta.
+      </h2>
+    </div>
+
+    <div class="steps">
+      <div class="step"><b>01</b><h3>Posetilac otvara sajt</h3><p>AI se pojavljuje kao prodajni konsultant na vašem sajtu.</p></div>
+      <div class="step"><b>02</b><h3>AI započinje razgovor</h3><p>Odgovara na pitanja i razume šta klijent traži.</p></div>
+      <div class="step"><b>03</b><h3>Kvalifikacija</h3><p>Prikuplja budžet, potrebe, lokaciju i kontakt.</p></div>
+      <div class="step"><b>04</b><h3>Lead ide timu</h3><p>Podaci stižu u Telegram, CRM ili n8n workflow.</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="pricing">
+    <div class="section-head">
+      <span data-sr="Cene" data-en="Pricing">Cene</span>
+      <h2 data-sr="Jednostavan model za brz početak." data-en="Simple pricing for a fast launch.">
+        Jednostavan model za brz početak.
+      </h2>
+    </div>
+
+    <div class="pricing">
+      <div class="plan">
+        <h3>Starter</h3>
+        <strong>€99</strong>
+        <p>Za male biznise koji žele da testiraju AI leadove.</p>
+      </div>
+
+      <div class="plan featured">
+        <h3>Business</h3>
+        <strong>€199</strong>
+        <p>Za aktivne timove kojima trebaju automatizacija i integracije.</p>
+      </div>
+
+      <div class="plan">
+        <h3>Enterprise</h3>
+        <strong>Custom</strong>
+        <p>Poseban workflow, dodatne integracije i onboarding.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  © 2026 Infinity AI — AI Sales Consultant Platform
+</footer>
+
+<script>
+  const srBtn = document.getElementById('srBtn');
+  const enBtn = document.getElementById('enBtn');
+
+  function setPageLang(lang) {
+    document.documentElement.lang = lang;
+
+    document.querySelectorAll('[data-sr]').forEach(function (el) {
+      el.textContent = el.getAttribute(lang === 'sr' ? 'data-sr' : 'data-en');
+    });
+
+    srBtn.classList.toggle('active', lang === 'sr');
+    enBtn.classList.toggle('active', lang === 'en');
+  }
+
+  srBtn.addEventListener('click', function () {
+    setPageLang('sr');
+  });
+
+  enBtn.addEventListener('click', function () {
+    setPageLang('en');
+  });
+</script>
 
 <script src="./src/config/settings.js"></script>
 
