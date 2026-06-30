@@ -1,12 +1,77 @@
 window.AIChatFlow = {
   maxQuestions: 3,
 
+  texts: {
+    sr: {
+      thinking: '🤖 Razmišljam...',
+      searching: '🔍 Tražim odgovarajuće objekte...',
+      searchError: '❌ Došlo je do greške pri pretrazi objekata.',
+      generalError: '❌ Došlo je do greške. Molimo pokušajte ponovo.',
+      enterQuestion: 'Unesite pitanje',
+      enterAnswer: 'Unesite odgovor',
+      budgetQuestion: 'Koliki budžet planirate?',
+      roomsQuestion: 'Koliko soba vam je potrebno?',
+      districtQuestion: 'Koji deo grada vas interesuje?',
+      otherImportantQuestion: 'Da li imate još neki važan zahtev?',
+      yourAnswer: 'Vaš odgovor...',
+      continue: 'Nastavi',
+      foundPrefix: '✅ Pronašao sam ',
+      foundSuffix: ' objekata.',
+      foundContact: 'Ostavite kontakt i naš agent će vam odmah poslati kompletnu ponudu.',
+      thanksTitle: '✅ Hvala na informacijama.',
+      thanksContact: 'Ostavite kontakt i naš agent će vam se uskoro javiti.',
+      notImportant: 'nije presudno'
+    },
+
+    en: {
+      thinking: '🤖 Thinking...',
+      searching: '🔍 Searching for suitable properties...',
+      searchError: '❌ There was an error while searching properties.',
+      generalError: '❌ Something went wrong. Please try again.',
+      enterQuestion: 'Please enter your question',
+      enterAnswer: 'Please enter your answer',
+      budgetQuestion: 'What budget are you planning?',
+      roomsQuestion: 'How many rooms do you need?',
+      districtQuestion: 'Which part of the city are you interested in?',
+      otherImportantQuestion: 'Do you have any other important requirement?',
+      yourAnswer: 'Your answer...',
+      continue: 'Continue',
+      foundPrefix: '✅ I found ',
+      foundSuffix: ' properties.',
+      foundContact: 'Leave your contact and our agent will send you the full offer.',
+      thanksTitle: '✅ Thank you for the information.',
+      thanksContact: 'Leave your contact and our agent will contact you shortly.',
+      notImportant: 'not important'
+    }
+  },
+
+  lang: function() {
+    return (
+      window.InfinitySettings &&
+      window.InfinitySettings.language
+    ) || document.documentElement.lang || 'sr';
+  },
+
+  text: function(key) {
+    var lang = this.lang();
+
+    if (this.texts[lang] && this.texts[lang][key]) {
+      return this.texts[lang][key];
+    }
+
+    if (this.texts.sr[key]) {
+      return this.texts.sr[key];
+    }
+
+    return key;
+  },
+
   sendFirstMessage: async function() {
     var input = document.getElementById('aiFreeMessage');
     var message = input ? input.value : '';
 
     if (!message) {
-      alert('Unesite pitanje');
+      alert(this.text('enterQuestion'));
       return;
     }
 
@@ -22,7 +87,7 @@ window.AIChatFlow = {
     var message = input ? input.value : '';
 
     if (!message) {
-      alert('Unesite odgovor');
+      alert(this.text('enterAnswer'));
       return;
     }
 
@@ -30,33 +95,29 @@ window.AIChatFlow = {
   },
 
   processMessage: async function(message, previousState) {
-    WidgetUI.setMessages(
-  '<p>' +
-  (
-    window.InfinitySettings &&
-    window.InfinitySettings.language === 'en'
-      ? '🤖 Thinking...'
-      : '🤖 Razmišljam...'
-  ) +
-  '</p>'
-);
+    WidgetUI.setMessages('<p>' + this.text('thinking') + '</p>');
 
     try {
       const ai = await AIBrainService.send(message, previousState || {});
 
-      this.applyAIState(ai, message, previousState);
+      this.applyAIState(ai || {}, message, previousState || {});
 
-      if (this.shouldRunSearch(ai)) {
+      if (this.shouldRunSearch(ai || {})) {
         await this.runSearchOnly();
       }
 
-      if (ai.next_question && this.canAskMoreQuestions()) {
+      var nextQuestion = this.localizeQuestion((ai && ai.next_question) || '');
+
+      if (nextQuestion && this.canAskMoreQuestions()) {
         this.incrementQuestionCount();
-        return this.askNextQuestion(ai);
+
+        return this.askNextQuestion({
+          next_question: nextQuestion
+        });
       }
 
-      if (this.isQualifiedForContact(ai)) {
-        return this.askContactFromAI(ai);
+      if (this.isQualifiedForContact(ai || {})) {
+        return this.askContactFromAI(ai || {});
       }
 
       if (this.canAskMoreQuestions()) {
@@ -69,34 +130,99 @@ window.AIChatFlow = {
         });
       }
 
-      return this.askContactFromAI(ai);
+      return this.askContactFromAI(ai || {});
 
     } catch (e) {
       console.error(e);
-      WidgetUI.setMessages('<p>❌ Došlo je do greške. Molimo pokušajte ponovo.</p>');
+      WidgetUI.setMessages('<p>' + this.text('generalError') + '</p>');
     }
   },
 
   getRequiredQuestion: function() {
     if (!InfinityAI.state.budget) {
-      return 'Koliki budžet planirate?';
+      return this.text('budgetQuestion');
     }
 
     if (!InfinityAI.state.rooms && !InfinityAI.state.roomsNotImportant) {
-      return 'Koliko soba vam je potrebno?';
+      return this.text('roomsQuestion');
     }
 
     if (!InfinityAI.state.district) {
-      return 'Koji deo grada vas interesuje?';
+      return this.text('districtQuestion');
     }
 
-    return 'Da li imate još neki važan zahtev?';
+    return this.text('otherImportantQuestion');
+  },
+
+  localizeQuestion: function(question) {
+    var lang = this.lang();
+    var q = (question || '').toString();
+    var lower = q.toLowerCase();
+
+    if (!q) return '';
+
+    if (lang !== 'en') {
+      return q;
+    }
+
+    if (
+      lower.includes('budžet') ||
+      lower.includes('budzet') ||
+      lower.includes('бюджет')
+    ) {
+      return this.text('budgetQuestion');
+    }
+
+    if (
+      lower.includes('koliko soba') ||
+      lower.includes('broj soba') ||
+      lower.includes('soba') ||
+      lower.includes('комнат')
+    ) {
+      return this.text('roomsQuestion');
+    }
+
+    if (
+      lower.includes('deo grada') ||
+      lower.includes('koji deo') ||
+      lower.includes('lokacija') ||
+      lower.includes('район')
+    ) {
+      return this.text('districtQuestion');
+    }
+
+    if (
+      lower.includes('još neki') ||
+      lower.includes('jos neki') ||
+      lower.includes('važan zahtev') ||
+      lower.includes('vazan zahtev')
+    ) {
+      return this.text('otherImportantQuestion');
+    }
+
+    return q;
   },
 
   applyAIState: function(ai, userMessage, previous) {
+    ai = ai || {};
     previous = previous || {};
 
-    var lowerMessage = (userMessage || '').toLowerCase();
+    var lowerMessage = (userMessage || '').toString().toLowerCase();
+
+    var looksLikePropertySearch =
+      lowerMessage.includes('stan') ||
+      lowerMessage.includes('stana') ||
+      lowerMessage.includes('nekretn') ||
+      lowerMessage.includes('kupujem') ||
+      lowerMessage.includes('kupiti') ||
+      lowerMessage.includes('tražim') ||
+      lowerMessage.includes('trazim') ||
+      lowerMessage.includes('apartment') ||
+      lowerMessage.includes('flat') ||
+      lowerMessage.includes('house') ||
+      lowerMessage.includes('property') ||
+      lowerMessage.includes('looking for') ||
+      lowerMessage.includes('buy');
 
     var roomsNotImportant =
       lowerMessage.includes('не важно') ||
@@ -105,28 +231,33 @@ window.AIChatFlow = {
       lowerMessage.includes('nije bitno') ||
       lowerMessage.includes('nije važno') ||
       lowerMessage.includes('svejedno') ||
-      lowerMessage.includes('bilo koji');
+      lowerMessage.includes('bilo koji') ||
+      lowerMessage.includes('does not matter') ||
+      lowerMessage.includes('not important') ||
+      lowerMessage.includes('any rooms') ||
+      lowerMessage.includes('any number');
 
     InfinityAI.state.requestType =
-      ai.intent || previous.intent || InfinityAI.state.requestType || 'unknown';
+      ai.intent ||
+      previous.intent ||
+      InfinityAI.state.requestType ||
+      'unknown';
 
     if (
-      InfinityAI.state.requestType === 'unknown' &&
-      (
-        lowerMessage.includes('купить') ||
-        lowerMessage.includes('kupiti') ||
-        lowerMessage.includes('kupujem') ||
-        lowerMessage.includes('tražim stan') ||
-        lowerMessage.includes('trazim stan')
-      )
+      InfinityAI.state.requestType === 'unknown' ||
+      !InfinityAI.state.requestType
     ) {
-      InfinityAI.state.requestType = 'buy';
+      if (looksLikePropertySearch) {
+        InfinityAI.state.requestType = 'buy';
+      }
     }
 
     InfinityAI.state.budget =
-      ai.budget ||
-      previous.budget ||
-      InfinityAI.state.budget ||
+      this.normalizeBudget(ai.budget) ||
+      this.normalizeBudget(ai.price) ||
+      this.normalizeBudget(previous.budget) ||
+      this.normalizeBudget(previous.price) ||
+      this.normalizeBudget(InfinityAI.state.budget) ||
       this.extractBudget(userMessage) ||
       0;
 
@@ -135,29 +266,34 @@ window.AIChatFlow = {
       InfinityAI.state.roomsNotImportant = true;
     } else {
       InfinityAI.state.rooms =
-        ai.rooms ||
-        previous.rooms ||
-        InfinityAI.state.rooms ||
+        this.normalizeRooms(ai.rooms) ||
+        this.normalizeRooms(previous.rooms) ||
+        this.normalizeRooms(InfinityAI.state.rooms) ||
         this.extractRooms(userMessage) ||
         0;
     }
 
     var normalizedAIDistrict = this.normalizeDistrict(ai.district);
-var normalizedPreviousDistrict = this.normalizeDistrict(previous.district);
-var normalizedCurrentDistrict = this.normalizeDistrict(InfinityAI.state.district);
-var normalizedMessageDistrict = this.extractDistrict(userMessage);
+    var normalizedPreviousDistrict = this.normalizeDistrict(previous.district);
+    var normalizedCurrentDistrict = this.normalizeDistrict(InfinityAI.state.district);
+    var normalizedMessageDistrict = this.extractDistrict(userMessage);
 
-InfinityAI.state.district =
-  normalizedAIDistrict ||
-  normalizedPreviousDistrict ||
-  normalizedCurrentDistrict ||
-  normalizedMessageDistrict ||
-  '';
+    InfinityAI.state.district =
+      normalizedAIDistrict ||
+      normalizedPreviousDistrict ||
+      normalizedCurrentDistrict ||
+      normalizedMessageDistrict ||
+      '';
+
     var oldPreferences =
-      InfinityAI.state.preferences || previous.preferences || '';
+      InfinityAI.state.preferences ||
+      previous.preferences ||
+      '';
 
     var newPreferences =
-      ai.preferences || userMessage || '';
+      ai.preferences ||
+      userMessage ||
+      '';
 
     InfinityAI.state.preferences =
       (oldPreferences + '\n' + newPreferences).trim();
@@ -168,7 +304,11 @@ InfinityAI.state.district =
       price: ai.price || previous.price || null,
       rooms: InfinityAI.state.rooms,
       district: InfinityAI.state.district,
-      property_type: ai.property_type || previous.property_type || this.extractPropertyType(userMessage) || null,
+      property_type:
+        ai.property_type ||
+        previous.property_type ||
+        this.extractPropertyType(userMessage) ||
+        null,
       preferences: InfinityAI.state.preferences,
       missing_fields: ai.missing_fields || [],
       next_question: ai.next_question || '',
@@ -177,146 +317,152 @@ InfinityAI.state.district =
     };
   },
 
+  normalizeBudget: function(value) {
+    if (!value) return 0;
+
+    if (typeof value === 'number') {
+      return value >= 10000 ? value : 0;
+    }
+
+    return this.extractBudget(String(value));
+  },
+
   extractBudget: function(message) {
-  var text = (message || '').toString().toLowerCase();
+    var text = (message || '').toString().toLowerCase();
 
-  var kMatch = text.match(/(\d+(?:[.,]\d+)?)\s*k/);
-  if (kMatch) {
-    return Math.round(Number(kMatch[1].replace(',', '.')) * 1000);
-  }
+    var kMatch = text.match(/(\d+(?:[.,]\d+)?)\s*k/);
+    if (kMatch) {
+      return Math.round(Number(kMatch[1].replace(',', '.')) * 1000);
+    }
 
-  var numbers = text.match(/\d[\d\s.,]*/g);
+    var numbers = text.match(/\d[\d\s.,]*/g);
 
-  if (!numbers) return 0;
+    if (!numbers) return 0;
 
-  for (var i = 0; i < numbers.length; i++) {
-    var n = Number(
-      numbers[i]
-        .replace(/\s/g, '')
-        .replace(/\./g, '')
-        .replace(/,/g, '')
-    );
+    for (var i = 0; i < numbers.length; i++) {
+      var n = Number(
+        numbers[i]
+          .replace(/\s/g, '')
+          .replace(/\./g, '')
+          .replace(/,/g, '')
+      );
 
-    if (!isNaN(n) && n >= 10000) return n;
-  }
+      if (!isNaN(n) && n >= 10000) return n;
+    }
 
-  return 0;
-},
+    return 0;
+  },
+
+  normalizeRooms: function(value) {
+    if (!value) return 0;
+
+    if (typeof value === 'number') {
+      return value > 0 && value <= 10 ? value : 0;
+    }
+
+    return this.extractRooms(String(value));
+  },
 
   extractRooms: function(message) {
-  var text = (message || '').toString().toLowerCase();
+    var text = (message || '').toString().toLowerCase();
 
-  if (
-    text.includes('jednosoban') ||
-    text.includes('jedna soba') ||
-    text.includes('однособ') ||
-    text.includes('1 sob') ||
-    text.includes('one bedroom') ||
-    text.includes('one-bedroom') ||
-    text.includes('1 bedroom') ||
-    text.includes('1-bedroom')
-  ) return 1;
+    if (
+      text.includes('jednosoban') ||
+      text.includes('jedna soba') ||
+      text.includes('однособ') ||
+      text.includes('1 sob') ||
+      text.includes('one bedroom') ||
+      text.includes('one-bedroom') ||
+      text.includes('1 bedroom') ||
+      text.includes('1-bedroom')
+    ) return 1;
 
-  if (
-    text.includes('dvosoban') ||
-    text.includes('dve sobe') ||
-    text.includes('двухкомнат') ||
-    text.includes('2 sob') ||
-    text.includes('two bedroom') ||
-    text.includes('two-bedroom') ||
-    text.includes('2 bedroom') ||
-    text.includes('2-bedroom')
-  ) return 2;
+    if (
+      text.includes('dvosoban') ||
+      text.includes('dve sobe') ||
+      text.includes('двухкомнат') ||
+      text.includes('2 sob') ||
+      text.includes('two bedroom') ||
+      text.includes('two-bedroom') ||
+      text.includes('2 bedroom') ||
+      text.includes('2-bedroom')
+    ) return 2;
 
-  if (
-    text.includes('trosoban') ||
-    text.includes('tri sobe') ||
-    text.includes('трехкомнат') ||
-    text.includes('трёхкомнат') ||
-    text.includes('3 sob') ||
-    text.includes('three bedroom') ||
-    text.includes('three-bedroom') ||
-    text.includes('3 bedroom') ||
-    text.includes('3-bedroom')
-  ) return 3;
+    if (
+      text.includes('trosoban') ||
+      text.includes('tri sobe') ||
+      text.includes('трехкомнат') ||
+      text.includes('трёхкомнат') ||
+      text.includes('3 sob') ||
+      text.includes('three bedroom') ||
+      text.includes('three-bedroom') ||
+      text.includes('3 bedroom') ||
+      text.includes('3-bedroom')
+    ) return 3;
 
-  if (
-    text.includes('four bedroom') ||
-    text.includes('four-bedroom') ||
-    text.includes('4 bedroom') ||
-    text.includes('4-bedroom') ||
-    text.includes('četvorosoban') ||
-    text.includes('cetvorosoban')
-  ) return 4;
+    if (
+      text.includes('four bedroom') ||
+      text.includes('four-bedroom') ||
+      text.includes('4 bedroom') ||
+      text.includes('4-bedroom') ||
+      text.includes('četvorosoban') ||
+      text.includes('cetvorosoban')
+    ) return 4;
 
-  var numbers = text.match(/\d[\d\s.,]*/g);
-  if (!numbers) return 0;
+    var numbers = text.match(/\d[\d\s.,]*/g);
+    if (!numbers) return 0;
 
-  for (var i = 0; i < numbers.length; i++) {
-    var n = Number(
-      numbers[i]
-        .replace(/\s/g, '')
-        .replace(/\./g, '')
-        .replace(/,/g, '')
-    );
+    for (var i = 0; i < numbers.length; i++) {
+      var n = Number(
+        numbers[i]
+          .replace(/\s/g, '')
+          .replace(/\./g, '')
+          .replace(/,/g, '')
+      );
 
-    if (!isNaN(n) && n > 0 && n <= 10) return n;
-  }
+      if (!isNaN(n) && n > 0 && n <= 10) return n;
+    }
 
-  return 0;
-},
+    return 0;
+  },
 
-normalizeDistrict: function(value) {
-  var text = (value || '').toString().toLowerCase();
+  normalizeDistrict: function(value) {
+    var text = (value || '').toString().toLowerCase();
 
-  if (!text) return '';
+    if (!text) return '';
 
-  if (text.includes('centar') || text.includes('center') || text.includes('centre') || text.includes('центр')) {
-    return 'NOVI SAD CENTAR';
-  }
+    if (
+      text.includes('centar') ||
+      text.includes('center') ||
+      text.includes('centre') ||
+      text.includes('центр')
+    ) {
+      return 'NOVI SAD CENTAR';
+    }
 
-  if (text.includes('liman') || text.includes('лиман')) {
-    return 'NOVI SAD LIMAN';
-  }
+    if (text.includes('liman') || text.includes('лиман')) {
+      return 'NOVI SAD LIMAN';
+    }
 
-  if (text.includes('telep') || text.includes('телеп')) {
-    return 'NOVI SAD TELEP';
-  }
+    if (text.includes('telep') || text.includes('телеп')) {
+      return 'NOVI SAD TELEP';
+    }
 
-  if (text.includes('podbara') || text.includes('подбара')) {
-    return 'NOVI SAD PODBARA';
-  }
+    if (text.includes('podbara') || text.includes('подбара')) {
+      return 'NOVI SAD PODBARA';
+    }
 
-  if (text.includes('detelinara') || text.includes('детелинара')) {
-    return 'NOVI SAD DETELINARA';
-  }
+    if (text.includes('detelinara') || text.includes('детелинара')) {
+      return 'NOVI SAD DETELINARA';
+    }
 
-  if (text.includes('grbavica')) {
-    return 'NOVI SAD GRBAVICA';
-  }
+    if (text.includes('grbavica')) {
+      return 'NOVI SAD GRBAVICA';
+    }
 
-  if (text.includes('novo naselje')) {
-    return 'NOVI SAD NOVO NASELJE';
-  }
-
-  if (
-    text.includes('novi sad') ||
-    text.includes('novom sadu') ||
-    text.includes('нови сад') ||
-    text.includes('новом саду')
-  ) {
-    return 'NOVI SAD';
-  }
-
-  return value || '';
-},
-  extractDistrict: function(message) {
-    var text = (message || '').toLowerCase();
-
-    if (text.includes('liman') || text.includes('лиман')) return 'NOVI SAD LIMAN';
-    if (text.includes('telep') || text.includes('телеп')) return 'NOVI SAD TELEP';
-    if (text.includes('podbara') || text.includes('подбара')) return 'NOVI SAD PODBARA';
-    if (text.includes('detelinara') || text.includes('детелинара')) return 'NOVI SAD DETELINARA';
+    if (text.includes('novo naselje')) {
+      return 'NOVI SAD NOVO NASELJE';
+    }
 
     if (
       text.includes('novi sad') ||
@@ -328,14 +474,34 @@ normalizeDistrict: function(value) {
       return 'NOVI SAD';
     }
 
-    return '';
+    return value || '';
+  },
+
+  extractDistrict: function(message) {
+    return this.normalizeDistrict(message);
   },
 
   extractPropertyType: function(message) {
-    var text = (message || '').toLowerCase();
+    var text = (message || '').toString().toLowerCase();
 
-    if (text.includes('квартир') || text.includes('stan') || text.includes('stana')) return 'apartment';
-    if (text.includes('дом') || text.includes('kuća') || text.includes('kuca') || text.includes('house')) return 'house';
+    if (
+      text.includes('квартир') ||
+      text.includes('stan') ||
+      text.includes('stana') ||
+      text.includes('apartment') ||
+      text.includes('flat')
+    ) {
+      return 'apartment';
+    }
+
+    if (
+      text.includes('дом') ||
+      text.includes('kuća') ||
+      text.includes('kuca') ||
+      text.includes('house')
+    ) {
+      return 'house';
+    }
 
     return null;
   },
@@ -351,21 +517,43 @@ normalizeDistrict: function(value) {
   },
 
   shouldRunSearch: function(ai) {
-    var intent = ai.intent || InfinityAI.state.requestType || '';
-
-    if (intent !== 'buy') return false;
     if (InfinityAI.state.searchDone) return false;
 
-    return Boolean(
+    ai = ai || {};
+
+    var intent = (
+      ai.intent ||
+      InfinityAI.state.requestType ||
+      ''
+    ).toString().toLowerCase();
+
+    var hasBuyingIntent =
+      intent === 'buy' ||
+      intent.includes('buy') ||
+      intent.includes('purchase') ||
+      intent.includes('real_estate') ||
+      intent.includes('property') ||
+      intent.includes('apartment') ||
+      intent.includes('stan') ||
+      intent.includes('nekretn');
+
+    var hasSearchParams = Boolean(
       InfinityAI.state.budget &&
       (InfinityAI.state.rooms || InfinityAI.state.roomsNotImportant)
     );
+
+    /*
+      Для демо надежность важнее идеального intent.
+      Если клиент дал бюджет + количество комнат,
+      запускаем поиск по базе.
+    */
+    return Boolean(hasSearchParams && (hasBuyingIntent || InfinityAI.state.budget));
   },
 
   runSearchOnly: async function() {
     if (InfinityAI.state.searchDone) return;
 
-    WidgetUI.setMessages('<p>🔍 Tražim odgovarajuće objekte...</p>');
+    WidgetUI.setMessages('<p>' + this.text('searching') + '</p>');
 
     try {
       const searchParams = {
@@ -379,37 +567,64 @@ normalizeDistrict: function(value) {
 
       const data = await PropertySearchService.search(searchParams);
 
-      InfinityAI.state.propertiesCount = data.length;
+      var count = 0;
+
+      if (Array.isArray(data)) {
+        count = data.length;
+      } else if (data && Array.isArray(data.data)) {
+        count = data.data.length;
+      } else if (data && typeof data.count === 'number') {
+        count = data.count;
+      }
+
+      InfinityAI.state.propertiesCount = count;
       InfinityAI.state.searchDone = true;
 
     } catch (e) {
       console.error(e);
-      WidgetUI.setMessages('<p>❌ Došlo je do greške pri pretrazi objekata.</p>');
+      WidgetUI.setMessages('<p>' + this.text('searchError') + '</p>');
     }
   },
 
   askNextQuestion: function(ai) {
+    ai = ai || {};
+
     var foundText = '';
 
     if (InfinityAI.state.searchDone) {
       foundText =
-        '<h3>✅ Pronašao sam ' +
+        '<h3>' +
+        this.text('foundPrefix') +
         InfinityAI.state.propertiesCount +
-        ' objekata.</h3>';
+        this.text('foundSuffix') +
+        '</h3>';
     }
 
     WidgetUI.setMessages(
       foundText +
-      '<p><b>' + ai.next_question + '</b></p>' +
-      '<textarea id="aiFollowupMessage" placeholder="Vaš odgovor..." style="width:100%;height:80px;padding:10px;"></textarea><br><br>' +
-      '<button class="infinity-ai-primary" onclick="AIChatFlow.sendFollowup()">Nastavi</button>'
+      '<p><b>' + this.localizeQuestion(ai.next_question || this.getRequiredQuestion()) + '</b></p>' +
+      '<textarea id="aiFollowupMessage" placeholder="' + this.text('yourAnswer') + '" style="width:100%;height:80px;padding:10px;"></textarea><br><br>' +
+      '<button class="infinity-ai-primary" onclick="AIChatFlow.sendFollowup()">' + this.text('continue') + '</button>'
     );
   },
 
   isQualifiedForContact: function(ai) {
-    var intent = ai.intent || InfinityAI.state.requestType || '';
+    ai = ai || {};
 
-    if (intent === 'buy') {
+    var intent = (
+      ai.intent ||
+      InfinityAI.state.requestType ||
+      ''
+    ).toString().toLowerCase();
+
+    if (
+      intent === 'buy' ||
+      intent.includes('buy') ||
+      intent.includes('property') ||
+      intent.includes('apartment') ||
+      intent.includes('stan') ||
+      intent.includes('nekretn')
+    ) {
       return Boolean(
         InfinityAI.state.budget &&
         (InfinityAI.state.rooms || InfinityAI.state.roomsNotImportant) &&
@@ -438,8 +653,10 @@ normalizeDistrict: function(value) {
   },
 
   askContactFromAI: function(ai) {
+    ai = ai || {};
+
     var roomsText = InfinityAI.state.roomsNotImportant
-      ? 'nije presudno'
+      ? this.text('notImportant')
       : (InfinityAI.state.rooms || '-');
 
     var preferences =
@@ -454,20 +671,22 @@ normalizeDistrict: function(value) {
 
     if (InfinityAI.state.searchDone) {
       foundBlock =
-        '<h3>✅ Pronašao sam <b>' +
-        (InfinityAI.state.propertiesCount || 0) +
-        '</b> odgovarajućih nekretnina.</h3>' +
-        '<p>Ostavite kontakt i naš agent će vam odmah poslati kompletnu ponudu.</p>';
+        '<h3>' +
+        this.text('foundPrefix') +
+        '<b>' + (InfinityAI.state.propertiesCount || 0) + '</b>' +
+        this.text('foundSuffix') +
+        '</h3>' +
+        '<p>' + this.text('foundContact') + '</p>';
     } else {
       foundBlock =
-        '<h3>✅ Hvala na informacijama.</h3>' +
-        '<p>Ostavite kontakt i naš agent će vam se uskoro javiti.</p>';
+        '<h3>' + this.text('thanksTitle') + '</h3>' +
+        '<p>' + this.text('thanksContact') + '</p>';
     }
 
     WidgetUI.setMessages(foundBlock);
 
     setTimeout(function() {
       ContactFlow.show(preferences);
-    }, 1500);
+    }, 800);
   }
 };
