@@ -30,7 +30,16 @@ window.AIChatFlow = {
   },
 
   processMessage: async function(message, previousState) {
-    WidgetUI.setMessages('<p>🤖 Razmišljam...</p>');
+    WidgetUI.setMessages(
+  '<p>' +
+  (
+    window.InfinitySettings &&
+    window.InfinitySettings.language === 'en'
+      ? '🤖 Thinking...'
+      : '🤖 Razmišljam...'
+  ) +
+  '</p>'
+);
 
     try {
       const ai = await AIBrainService.send(message, previousState || {});
