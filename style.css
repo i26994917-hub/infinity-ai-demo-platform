@@ -92,10 +92,10 @@ nav a:hover { color: white; }
 .hero {
     width: min(1600px, 100%);
     margin: 0 auto;
-    padding: 120px 7vw 90px;
+    padding: 86px 7vw 70px;
 
     display: grid;
-    grid-template-columns: 0.95fr 1.05fr;
+    grid-template-columns: 0.78fr 1.22fr;
     gap: 48px;
 
     align-items: center;
@@ -159,7 +159,7 @@ nav a:hover { color: white; }
 
 h1 {
   max-width: 760px;
-  font-size: clamp(54px, 5.2vw, 78px);
+  font-size: clamp(48px, 4.5vw, 66px);
   line-height: 0.98;
   letter-spacing: -0.065em;
   margin-bottom: 28px;
