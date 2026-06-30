@@ -288,21 +288,56 @@ function setupLeadForm() {
   const form = $("#leadForm");
   if (!form) return;
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const name = $("#leadName")?.value.trim() || "New Lead";
+    const name = $("#leadName")?.value.trim() || "";
     const phone = $("#leadPhone")?.value.trim() || "";
 
-    addLead({
+    const payload = {
       name,
+      phone,
+      source: "Infinity AI Demo Platform",
+      language: currentLang,
+      business: "real_estate",
+      country: "Serbia",
+      city: "Novi Sad",
+      message: currentLang === "sr"
+        ? "Lead sa demo platforme Infinity AI"
+        : "Lead from Infinity AI demo platform"
+    };
+
+    addLead({
+      name: name || "New Lead",
       need: phone || "Website demo",
-      budget: "Qualified"
+      budget: "Sending..."
     });
 
-    form.reset();
-    form.classList.add("hidden");
-    addMessage("ai", getText("success"));
+    try {
+      const response = await fetch("https://infinity-47.app.n8n.cloud/webhook/save-lead", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error("n8n error");
+      }
+
+      form.reset();
+      form.classList.add("hidden");
+
+      addMessage("ai", getText("success"));
+    } catch (error) {
+      addMessage(
+        "ai",
+        currentLang === "sr"
+          ? "⚠️ Došlo je do greške. Pokušajte ponovo."
+          : "⚠️ Something went wrong. Please try again."
+      );
+    }
   });
 }
 
