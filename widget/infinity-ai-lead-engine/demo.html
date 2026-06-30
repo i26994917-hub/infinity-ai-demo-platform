@@ -737,6 +737,438 @@
 <script src="./widget.js"></script>
 
 <script>
+(function () {
+  const widgetText = {
+    sr: {
+      widgetHeader: 'AI konsultant za nekretnine',
+
+      startTitle: 'Zdravo! Kako mogu da vam pomognem?',
+      textareaPlaceholder: 'Napišite šta tražite, na primer: Tražim trosoban stan do 170000 evra na Limanu...',
+      sendQuestion: 'Pošalji pitanje',
+      chooseOption: 'Ili izaberite jednu od opcija:',
+      buy: 'Želim da kupim stan/kuću',
+      sell: 'Želim da prodam stan/kuću',
+      rent: 'Želim da iznajmim stan/kuću',
+      let: 'Želim da izdam stan/kuću',
+      other: 'Imam drugo pitanje',
+
+      budgetQuestion: 'Koliki budžet planirate?',
+      districtQuestion: 'Koji deo grada vas interesuje?',
+      roomsQuestion: 'Koliko soba vam je potrebno?',
+      otherImportantQuestion: 'Da li imate još neki važan zahtev?',
+      yourAnswer: 'Vaš odgovor...',
+      continue: 'Nastavi',
+      thinking: '🤖 Razmišljam...',
+      searching: '🔍 Tražim odgovarajuće objekte...',
+      searchError: '❌ Došlo je do greške pri pretrazi objekata.',
+      error: '❌ Došlo je do greške. Molimo pokušajte ponovo.',
+      enterQuestion: 'Unesite pitanje',
+      enterAnswer: 'Unesite odgovor',
+
+      foundPrefix: '✅ Pronašao sam ',
+      foundSuffix: ' objekata.',
+      foundContact: 'Ostavite kontakt i naš agent će vam odmah poslati kompletnu ponudu.',
+      contactTitle: 'Odlično.',
+      contactText: 'Ostavite kontakt i naš stručnjak će vam se javiti.',
+      namePlaceholder: 'Vaše ime',
+      contactButton: 'Pošalji zahtev',
+
+      whatsappPlaceholder: 'WhatsApp broj, npr. +381601234567',
+      telegramPlaceholder: 'Telegram username, npr. @username',
+      phonePlaceholder: 'Broj telefona, npr. +381601234567',
+      viberPlaceholder: 'Viber broj, npr. +381601234567',
+
+      thanksTitle: '✅ Hvala!',
+      thanksText1: 'Vaš zahtev je primljen.',
+      thanksText2: 'Naš stručnjak će vam se uskoro javiti.',
+
+      buyBudgetTitle: 'Koji budžet razmatrate?',
+      buyDistrictTitle: 'Koji deo Novog Sada vas interesuje?',
+      buyRoomsTitle: 'Koliko soba vam je potrebno?',
+      notImportant: 'Nije presudno',
+      mostImportant: 'Šta vam je najvažnije pri izboru stana?',
+      preferencesPlaceholder: 'Na primer: lokacija, parking, sprat, blizina škole...',
+
+      sellWhat: 'Šta želite da prodate?',
+      letWhat: 'Šta želite da izdate?',
+      apartment: 'Stan',
+      house: 'Kuću',
+      enterPropertyInfo: 'Unesite osnovne informacije o nekretnini:',
+      districtPlaceholder: 'Deo grada',
+      areaPlaceholder: 'Kvadratura, npr. 65 m²',
+      expectedPricePlaceholder: 'Očekivana cena',
+      agentNotePlaceholder: 'Šta je važno da agent zna o nekretnini?',
+
+      rentInfo: 'Unesite osnovne informacije za zakup:',
+      rentBudgetPlaceholder: 'Mesečni budžet, npr. 500 EUR',
+      rentDistrictPlaceholder: 'Koji deo grada vas interesuje?',
+      rentRoomsPlaceholder: 'Koliko soba?',
+      rentImportantPlaceholder: 'Šta vam je najvažnije pri izboru nekretnine?',
+
+      letInfo: 'Unesite osnovne informacije za izdavanje:',
+      letAreaPlaceholder: 'Kvadratura',
+      letPricePlaceholder: 'Željena mesečna kirija',
+      letNotePlaceholder: 'Dodatne informacije za agenta',
+
+      otherQuestionTitle: 'Napišite svoje pitanje:',
+      otherQuestionPlaceholder: 'Kako možemo da vam pomognemo?'
+    },
+
+    en: {
+      widgetHeader: 'AI real estate consultant',
+
+      startTitle: 'Hi! How can I help you?',
+      textareaPlaceholder: 'Write what you are looking for, for example: I am looking for a 3-room apartment up to €170,000 in Liman...',
+      sendQuestion: 'Send question',
+      chooseOption: 'Or choose one of the options:',
+      buy: 'I want to buy an apartment/house',
+      sell: 'I want to sell an apartment/house',
+      rent: 'I want to rent an apartment/house',
+      let: 'I want to rent out an apartment/house',
+      other: 'I have another question',
+
+      budgetQuestion: 'What budget are you planning?',
+      districtQuestion: 'Which part of the city are you interested in?',
+      roomsQuestion: 'How many rooms do you need?',
+      otherImportantQuestion: 'Do you have any other important requirement?',
+      yourAnswer: 'Your answer...',
+      continue: 'Continue',
+      thinking: '🤖 Thinking...',
+      searching: '🔍 Searching for suitable properties...',
+      searchError: '❌ There was an error while searching properties.',
+      error: '❌ Something went wrong. Please try again.',
+      enterQuestion: 'Please enter your question',
+      enterAnswer: 'Please enter your answer',
+
+      foundPrefix: '✅ I found ',
+      foundSuffix: ' properties.',
+      foundContact: 'Leave your contact and our agent will send you the full offer.',
+      contactTitle: 'Great.',
+      contactText: 'Leave your contact and our specialist will get back to you.',
+      namePlaceholder: 'Your name',
+      contactButton: 'Send request',
+
+      whatsappPlaceholder: 'WhatsApp number, e.g. +381601234567',
+      telegramPlaceholder: 'Telegram username, e.g. @username',
+      phonePlaceholder: 'Phone number, e.g. +381601234567',
+      viberPlaceholder: 'Viber number, e.g. +381601234567',
+
+      thanksTitle: '✅ Thank you!',
+      thanksText1: 'Your request has been received.',
+      thanksText2: 'Our specialist will contact you soon.',
+
+      buyBudgetTitle: 'What budget are you considering?',
+      buyDistrictTitle: 'Which part of Novi Sad are you interested in?',
+      buyRoomsTitle: 'How many rooms do you need?',
+      notImportant: 'Not important',
+      mostImportant: 'What is most important for you when choosing an apartment?',
+      preferencesPlaceholder: 'For example: location, parking, floor, near school...',
+
+      sellWhat: 'What do you want to sell?',
+      letWhat: 'What do you want to rent out?',
+      apartment: 'Apartment',
+      house: 'House',
+      enterPropertyInfo: 'Enter basic property information:',
+      districtPlaceholder: 'District / area',
+      areaPlaceholder: 'Area, e.g. 65 m²',
+      expectedPricePlaceholder: 'Expected price',
+      agentNotePlaceholder: 'What should the agent know about the property?',
+
+      rentInfo: 'Enter basic rental information:',
+      rentBudgetPlaceholder: 'Monthly budget, e.g. 500 EUR',
+      rentDistrictPlaceholder: 'Which part of the city are you interested in?',
+      rentRoomsPlaceholder: 'How many rooms?',
+      rentImportantPlaceholder: 'What is most important for you when choosing a property?',
+
+      letInfo: 'Enter basic information for renting out:',
+      letAreaPlaceholder: 'Area',
+      letPricePlaceholder: 'Desired monthly rent',
+      letNotePlaceholder: 'Additional information for the agent',
+
+      otherQuestionTitle: 'Write your question:',
+      otherQuestionPlaceholder: 'How can we help you?'
+    }
+  };
+
+  function currentLang() {
+    return window.InfinitySettings?.language || document.documentElement.lang || 'sr';
+  }
+
+  function wt(key) {
+    const lang = currentLang();
+    return widgetText[lang]?.[key] || widgetText.sr[key] || key;
+  }
+
+  window.WidgetUI.updateHeader = function () {
+    const header = document.querySelector('.infinity-ai-header');
+    if (header) header.textContent = wt('widgetHeader');
+  };
+
+  window.Messages.start = function () {
+    return '' +
+      '<p><b>' + wt('startTitle') + '</b></p>' +
+      '<textarea id="aiFreeMessage" placeholder="' + wt('textareaPlaceholder') + '" style="width:100%;height:90px;padding:10px;"></textarea><br><br>' +
+      '<button class="infinity-ai-primary" onclick="AIChatFlow.sendFirstMessage()">' + wt('sendQuestion') + '</button>' +
+      '<p class="ai-small-note">' + wt('chooseOption') + '</p>' +
+      '<button onclick="InfinityAI.chooseType(\'buy\')">' + wt('buy') + '</button>' +
+      '<button onclick="InfinityAI.chooseType(\'sell\')">' + wt('sell') + '</button>' +
+      '<button onclick="InfinityAI.chooseType(\'rent\')">' + wt('rent') + '</button>' +
+      '<button onclick="InfinityAI.chooseType(\'let\')">' + wt('let') + '</button>' +
+      '<button onclick="InfinityAI.chooseType(\'other\')">' + wt('other') + '</button>';
+  };
+
+  window.Messages.thanks = function () {
+    return '' +
+      '<h3>' + wt('thanksTitle') + '</h3>' +
+      '<p>' + wt('thanksText1') + '</p>' +
+      '<p>' + wt('thanksText2') + '</p>';
+  };
+
+  window.Messages.error = function () {
+    return '<p>' + wt('error') + '</p>';
+  };
+
+  window.Forms.contactForm = function () {
+    return '' +
+      '<h3>' + wt('contactTitle') + '</h3>' +
+      '<p>' + wt('contactText') + '</p>' +
+      '<input id="leadName" placeholder="' + wt('namePlaceholder') + '" style="width:100%;padding:10px;"><br><br>' +
+      '<select id="messenger" onchange="Forms.renderContactFields()" style="width:100%;padding:10px;">' +
+      '<option value="WhatsApp">WhatsApp</option>' +
+      '<option value="Telegram">Telegram</option>' +
+      '<option value="Viber">Viber</option>' +
+      '</select><br><br>' +
+      '<div id="contactFields"></div>' +
+      '<button class="infinity-ai-primary" onclick="ContactFlow.saveLead()">' + wt('contactButton') + '</button>';
+  };
+
+  window.Forms.renderContactFields = function () {
+    const messenger = document.getElementById('messenger').value;
+    const box = document.getElementById('contactFields');
+
+    if (messenger === 'WhatsApp') {
+      box.innerHTML =
+        '<input id="contact" placeholder="' + wt('whatsappPlaceholder') + '" style="width:100%;padding:10px;"><br><br>' +
+        '<input id="telegramUsername" type="hidden" value="">';
+      return;
+    }
+
+    if (messenger === 'Telegram') {
+      box.innerHTML =
+        '<input id="telegramUsername" placeholder="' + wt('telegramPlaceholder') + '" style="width:100%;padding:10px;"><br><br>' +
+        '<input id="contact" placeholder="' + wt('phonePlaceholder') + '" style="width:100%;padding:10px;"><br><br>';
+      return;
+    }
+
+    if (messenger === 'Viber') {
+      box.innerHTML =
+        '<input id="contact" placeholder="' + wt('viberPlaceholder') + '" style="width:100%;padding:10px;"><br><br>' +
+        '<input id="telegramUsername" type="hidden" value="">';
+    }
+  };
+
+  window.Forms.showContactForm = function () {
+    WidgetUI.setMessages(this.contactForm());
+    this.renderContactFields();
+  };
+
+  BuyFlow.start = function () {
+    WidgetUI.setMessages(
+      '<p><b>' + wt('buyBudgetTitle') + '</b></p>' +
+      '<button onclick="BuyFlow.selectBudget(100000)">do €100.000</button>' +
+      '<button onclick="BuyFlow.selectBudget(150000)">do €150.000</button>' +
+      '<button onclick="BuyFlow.selectBudget(300000)">do €300.000</button>'
+    );
+  };
+
+  BuyFlow.askDistrict = function () {
+    WidgetUI.setMessages(
+      '<p><b>' + wt('buyDistrictTitle') + '</b></p>' +
+      '<button onclick="BuyFlow.selectDistrict(\'NOVI SAD CENTAR\')">Centar</button>' +
+      '<button onclick="BuyFlow.selectDistrict(\'NOVI SAD LIMAN\')">Liman</button>' +
+      '<button onclick="BuyFlow.selectDistrict(\'NOVI SAD TELEP\')">Telep</button>' +
+      '<button onclick="BuyFlow.selectDistrict(\'NOVI SAD PODBARA\')">Podbara</button>' +
+      '<button onclick="BuyFlow.selectDistrict(\'NOVI SAD DETELINARA\')">Detelinara</button>' +
+      '<button onclick="BuyFlow.selectDistrict(\'\')">' + wt('notImportant') + '</button>'
+    );
+  };
+
+  BuyFlow.askRooms = function () {
+    WidgetUI.setMessages(
+      '<p><b>' + wt('buyRoomsTitle') + '</b></p>' +
+      '<button onclick="BuyFlow.selectRooms(1)">1</button>' +
+      '<button onclick="BuyFlow.selectRooms(2)">2</button>' +
+      '<button onclick="BuyFlow.selectRooms(3)">3</button>' +
+      '<button onclick="BuyFlow.selectRooms(4)">4+</button>'
+    );
+  };
+
+  BuyFlow.selectRooms = async function (rooms) {
+    InfinityAI.state.rooms = rooms;
+    WidgetUI.setMessages('<p>' + wt('searching') + '</p>');
+
+    try {
+      const data = await PropertySearchService.search({
+        budget: InfinityAI.state.budget,
+        rooms: InfinityAI.state.rooms,
+        district: InfinityAI.state.district
+      });
+
+      InfinityAI.state.propertiesCount = data.length;
+
+      WidgetUI.setMessages(
+        '<h3>' + wt('foundPrefix') + data.length + wt('foundSuffix') + '</h3>' +
+        '<p>' + wt('mostImportant') + '</p>' +
+        '<textarea id="preferences" placeholder="' + wt('preferencesPlaceholder') + '" style="width:100%;height:90px;padding:10px;"></textarea><br><br>' +
+        '<button class="infinity-ai-primary" onclick="BuyFlow.finish()">' + wt('continue') + '</button>'
+      );
+    } catch (e) {
+      console.error(e);
+      WidgetUI.setMessages('<p>' + wt('searchError') + '</p>');
+    }
+  };
+
+  AIChatFlow.getRequiredQuestion = function () {
+    if (!InfinityAI.state.budget) return wt('budgetQuestion');
+    if (!InfinityAI.state.rooms && !InfinityAI.state.roomsNotImportant) return wt('roomsQuestion');
+    if (!InfinityAI.state.district) return wt('districtQuestion');
+    return wt('otherImportantQuestion');
+  };
+
+  AIChatFlow.sendFirstMessage = async function () {
+    const input = document.getElementById('aiFreeMessage');
+    const message = input ? input.value : '';
+
+    if (!message) {
+      alert(wt('enterQuestion'));
+      return;
+    }
+
+    InfinityAI.state.questionCount = 0;
+    InfinityAI.state.searchDone = false;
+    InfinityAI.state.roomsNotImportant = false;
+
+    await this.processMessage(message, {});
+  };
+
+  AIChatFlow.sendFollowup = async function () {
+    const input = document.getElementById('aiFollowupMessage');
+    const message = input ? input.value : '';
+
+    if (!message) {
+      alert(wt('enterAnswer'));
+      return;
+    }
+
+    await this.processMessage(message, InfinityAI.state.ai || {});
+  };
+
+  AIChatFlow.runSearchOnly = async function () {
+    if (InfinityAI.state.searchDone) return;
+
+    WidgetUI.setMessages('<p>' + wt('searching') + '</p>');
+
+    try {
+      const searchParams = {
+        budget: InfinityAI.state.budget,
+        district: InfinityAI.state.district
+      };
+
+      if (!InfinityAI.state.roomsNotImportant && InfinityAI.state.rooms) {
+        searchParams.rooms = InfinityAI.state.rooms;
+      }
+
+      const data = await PropertySearchService.search(searchParams);
+
+      InfinityAI.state.propertiesCount = data.length;
+      InfinityAI.state.searchDone = true;
+    } catch (e) {
+      console.error(e);
+      WidgetUI.setMessages('<p>' + wt('searchError') + '</p>');
+    }
+  };
+
+  AIChatFlow.askNextQuestion = function (ai) {
+    let foundText = '';
+
+    if (InfinityAI.state.searchDone) {
+      foundText =
+        '<h3>' + wt('foundPrefix') +
+        InfinityAI.state.propertiesCount +
+        wt('foundSuffix') + '</h3>';
+    }
+
+    WidgetUI.setMessages(
+      foundText +
+      '<p><b>' + ai.next_question + '</b></p>' +
+      '<textarea id="aiFollowupMessage" placeholder="' + wt('yourAnswer') + '" style="width:100%;height:80px;padding:10px;"></textarea><br><br>' +
+      '<button class="infinity-ai-primary" onclick="AIChatFlow.sendFollowup()">' + wt('continue') + '</button>'
+    );
+  };
+
+  AIChatFlow.askContactFromAI = function (ai) {
+    const roomsText = InfinityAI.state.roomsNotImportant
+      ? wt('notImportant')
+      : (InfinityAI.state.rooms || '-');
+
+    const preferences =
+      'Intent: ' + (ai.intent || InfinityAI.state.requestType || 'other') + '\n' +
+      'Budget: €' + (InfinityAI.state.budget || '-') + '\n' +
+      'Rooms: ' + roomsText + '\n' +
+      'District: ' + (InfinityAI.state.district || '-') + '\n' +
+      'Found properties: ' + (InfinityAI.state.propertiesCount || 0) + '\n' +
+      'Details: ' + (InfinityAI.state.preferences || ai.preferences || '');
+
+    let foundBlock = '';
+
+    if (InfinityAI.state.searchDone) {
+      foundBlock =
+        '<h3>' + wt('foundPrefix') +
+        '<b>' + (InfinityAI.state.propertiesCount || 0) + '</b>' +
+        wt('foundSuffix') + '</h3>' +
+        '<p>' + wt('foundContact') + '</p>';
+    } else {
+      foundBlock =
+        '<h3>' + wt('thanksTitle') + '</h3>' +
+        '<p>' + wt('contactText') + '</p>';
+    }
+
+    WidgetUI.setMessages(foundBlock);
+
+    setTimeout(function () {
+      ContactFlow.show(preferences);
+    }, 800);
+  };
+
+  const originalSetPageLang = window.setPageLang;
+
+  window.setPageLang = function (lang) {
+    if (window.InfinitySettings) {
+      window.InfinitySettings.language = lang;
+    }
+
+    if (typeof originalSetPageLang === 'function') {
+      originalSetPageLang(lang);
+    } else {
+      document.documentElement.lang = lang;
+    }
+
+    if (window.WidgetUI && typeof WidgetUI.updateHeader === 'function') {
+      WidgetUI.updateHeader();
+    }
+
+    if (document.getElementById('aiFreeMessage')) {
+      WidgetUI.setMessages(Messages.start());
+    }
+
+    if (document.getElementById('leadName') && document.getElementById('messenger')) {
+      Forms.showContactForm();
+    }
+  };
+})();
+</script>
+
+<script>
   InfinityAI.init({
     apiKey: 'house-nekretnine',
     autoOpenDelay: 3000
@@ -744,6 +1176,3 @@
 
   setPageLang('sr');
 </script>
-
-</body>
-</html>

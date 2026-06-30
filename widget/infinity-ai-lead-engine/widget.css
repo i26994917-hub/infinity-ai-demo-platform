@@ -243,3 +243,14 @@
   border: none !important;
   padding: 0 !important;
 }
+/* FIX: visible dropdown options inside dark widget */
+
+.infinity-ai-messages select {
+  color: #f8fafc !important;
+  background: rgba(255,255,255,.08) !important;
+}
+
+.infinity-ai-messages select option {
+  color: #111827 !important;
+  background: #ffffff !important;
+}
