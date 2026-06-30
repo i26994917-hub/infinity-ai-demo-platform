@@ -3,11 +3,18 @@ window.WidgetUI = {
     var html =
       '<button class="infinity-ai-button">💬</button>' +
       '<div class="infinity-ai-window">' +
-      '<div class="infinity-ai-header">AI konsultant za nekretnine</div>' +
+      '<div class="infinity-ai-header">' + t('widgetHeader') + '</div>' +
       '<div class="infinity-ai-messages"></div>' +
       '</div>';
 
     document.body.insertAdjacentHTML('beforeend', html);
+  },
+
+  updateHeader: function() {
+    var header = document.querySelector('.infinity-ai-header');
+    if (header) {
+      header.textContent = t('widgetHeader');
+    }
   },
 
   open: function() {

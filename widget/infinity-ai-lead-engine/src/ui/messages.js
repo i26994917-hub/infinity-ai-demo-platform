@@ -1,29 +1,29 @@
 window.Messages = {
   start: function() {
     return '' +
-      '<p><b>Zdravo! Kako mogu da vam pomognem?</b></p>' +
+      '<p><b>' + t('startTitle') + '</b></p>' +
 
-      '<textarea id="aiFreeMessage" placeholder="Napišite šta tražite, na primer: Tražim trosoban stan do 170000 evra na Limanu..." style="width:100%;height:90px;padding:10px;"></textarea><br><br>' +
+      '<textarea id="aiFreeMessage" placeholder="' + t('textareaPlaceholder') + '" style="width:100%;height:90px;padding:10px;"></textarea><br><br>' +
 
-      '<button class="infinity-ai-primary" onclick="AIChatFlow.sendFirstMessage()">Pošalji pitanje</button>' +
+      '<button class="infinity-ai-primary" onclick="AIChatFlow.sendFirstMessage()">' + t('sendQuestion') + '</button>' +
 
-      '<p class="ai-small-note">Ili izaberite jednu od opcija:</p>' +
+      '<p class="ai-small-note">' + t('chooseOption') + '</p>' +
 
-      '<button onclick="InfinityAI.chooseType(\'buy\')">Želim da kupim stan/kuću</button>' +
-      '<button onclick="InfinityAI.chooseType(\'sell\')">Želim da prodam stan/kuću</button>' +
-      '<button onclick="InfinityAI.chooseType(\'rent\')">Želim da iznajmim stan/kuću</button>' +
-      '<button onclick="InfinityAI.chooseType(\'let\')">Želim da izdam stan/kuću</button>' +
-      '<button onclick="InfinityAI.chooseType(\'other\')">Imam drugo pitanje</button>';
+      '<button onclick="InfinityAI.chooseType(\'buy\')">' + t('buy') + '</button>' +
+      '<button onclick="InfinityAI.chooseType(\'sell\')">' + t('sell') + '</button>' +
+      '<button onclick="InfinityAI.chooseType(\'rent\')">' + t('rent') + '</button>' +
+      '<button onclick="InfinityAI.chooseType(\'let\')">' + t('let') + '</button>' +
+      '<button onclick="InfinityAI.chooseType(\'other\')">' + t('other') + '</button>';
   },
 
   thanks: function() {
     return '' +
-      '<h3>✅ Hvala!</h3>' +
-      '<p>Vaš zahtev je primljen.</p>' +
-      '<p>Naš stručnjak će vam se uskoro javiti.</p>';
+      '<h3>' + t('thanksTitle') + '</h3>' +
+      '<p>' + t('thanksText1') + '</p>' +
+      '<p>' + t('thanksText2') + '</p>';
   },
 
   error: function() {
-    return '<p>❌ Nije moguće poslati zahtev. Molimo pokušajte ponovo.</p>';
+    return '<p>' + t('error') + '</p>';
   }
 };

@@ -498,10 +498,7 @@
         <span data-sr="STVARAN AI" data-en="REAL AI">STVARAN AI</span>
       </div>
 
-      <h2
-        data-sr="Ovo nije simulacija."
-        data-en="This is not a simulation."
-      >
+      <h2 data-sr="Ovo nije simulacija." data-en="This is not a simulation.">
         Ovo nije simulacija.
       </h2>
 
@@ -514,13 +511,13 @@
 
       <div class="industry-select">
         <label data-sr="Demo industrija" data-en="Demo industry">Demo industrija</label>
-        <select>
-          <option>🏢 Nekretnine / Real Estate</option>
-          <option>🏗 Investitori / Developers</option>
-          <option>🚗 Auto saloni / Auto Dealers</option>
-          <option>🏥 Klinike / Clinics</option>
-          <option>🦷 Stomatologija / Dental</option>
-          <option>⚖ Advokati / Lawyers</option>
+        <select id="industrySelect">
+          <option value="realestate" data-sr="🏢 Nekretnine" data-en="🏢 Real Estate">🏢 Nekretnine</option>
+          <option value="developer" data-sr="🏗 Investitori" data-en="🏗 Developers">🏗 Investitori</option>
+          <option value="cars" data-sr="🚗 Auto saloni" data-en="🚗 Auto Dealers">🚗 Auto saloni</option>
+          <option value="clinic" data-sr="🏥 Klinike" data-en="🏥 Clinics">🏥 Klinike</option>
+          <option value="dentist" data-sr="🦷 Stomatologija" data-en="🦷 Dental Clinics">🦷 Stomatologija</option>
+          <option value="law" data-sr="⚖ Advokati" data-en="⚖ Lawyers">⚖ Advokati</option>
         </select>
       </div>
     </div>
@@ -532,22 +529,74 @@
       <h2 data-sr="Jedna AI platforma za više od 10 industrija." data-en="One AI platform for 10+ industries.">
         Jedna AI platforma za više od 10 industrija.
       </h2>
-      <p data-sr="Infinity AI se može prilagoditi za nekretnine, investitore, auto salone, klinike, stomatologe, advokate i druge uslužne biznise." data-en="Infinity AI can be adapted for real estate, developers, auto dealers, clinics, dentists, lawyers and other service businesses.">
+      <p
+        data-sr="Infinity AI se može prilagoditi za nekretnine, investitore, auto salone, klinike, stomatologe, advokate i druge uslužne biznise."
+        data-en="Infinity AI can be adapted for real estate, developers, auto dealers, clinics, dentists, lawyers and other service businesses."
+      >
         Infinity AI se može prilagoditi za nekretnine, investitore, auto salone, klinike, stomatologe, advokate i druge uslužne biznise.
       </p>
     </div>
 
     <div class="industries">
-      <div class="industry-card"><div>🏢</div><strong>Nekretnine</strong><p>Pretraga objekata, kvalifikacija kupaca, zakazivanje gledanja.</p></div>
-      <div class="industry-card"><div>🏗</div><strong>Investitori</strong><p>Prodaja stanova u novogradnji, pitanja o projektu i cenama.</p></div>
-      <div class="industry-card"><div>🚗</div><strong>Auto saloni</strong><p>Preporuka vozila, trade-in, zakazivanje test vožnje.</p></div>
-      <div class="industry-card"><div>🏥</div><strong>Klinike</strong><p>Zakazivanje pregleda, osnovna pitanja i unos kontakta.</p></div>
-      <div class="industry-card"><div>🦷</div><strong>Stomatologija</strong><p>Konsultacije, okvirna procena usluge i zakazivanje termina.</p></div>
-      <div class="industry-card"><div>⚖</div><strong>Advokati</strong><p>Kvalifikacija slučaja i zakazivanje konsultacije.</p></div>
-      <div class="industry-card"><div>🏨</div><strong>Hoteli</strong><p>Upiti za rezervacije, događaje i dodatne usluge.</p></div>
-      <div class="industry-card"><div>🎓</div><strong>Edukacija</strong><p>Prijave za kurseve, pitanja o programu i terminima.</p></div>
-      <div class="industry-card"><div>🛒</div><strong>Maloprodaja</strong><p>Preporuka proizvoda, dostupnost i kontakt za prodaju.</p></div>
-      <div class="industry-card"><div>💼</div><strong>Osiguranje</strong><p>Kvalifikacija zahteva i slanje podataka agentu.</p></div>
+      <div class="industry-card">
+        <div>🏢</div>
+        <strong data-sr="Nekretnine" data-en="Real Estate">Nekretnine</strong>
+        <p data-sr="Pretraga objekata, kvalifikacija kupaca, zakazivanje gledanja." data-en="Property search, buyer qualification and viewing bookings.">Pretraga objekata, kvalifikacija kupaca, zakazivanje gledanja.</p>
+      </div>
+
+      <div class="industry-card">
+        <div>🏗</div>
+        <strong data-sr="Investitori" data-en="Developers">Investitori</strong>
+        <p data-sr="Prodaja stanova u novogradnji, pitanja o projektu i cenama." data-en="New development sales, project questions and price qualification.">Prodaja stanova u novogradnji, pitanja o projektu i cenama.</p>
+      </div>
+
+      <div class="industry-card">
+        <div>🚗</div>
+        <strong data-sr="Auto saloni" data-en="Auto Dealers">Auto saloni</strong>
+        <p data-sr="Preporuka vozila, trade-in, zakazivanje test vožnje." data-en="Vehicle recommendations, trade-in and test drive booking.">Preporuka vozila, trade-in, zakazivanje test vožnje.</p>
+      </div>
+
+      <div class="industry-card">
+        <div>🏥</div>
+        <strong data-sr="Klinike" data-en="Clinics">Klinike</strong>
+        <p data-sr="Zakazivanje pregleda, osnovna pitanja i unos kontakta." data-en="Appointment booking, basic questions and contact collection.">Zakazivanje pregleda, osnovna pitanja i unos kontakta.</p>
+      </div>
+
+      <div class="industry-card">
+        <div>🦷</div>
+        <strong data-sr="Stomatologija" data-en="Dental Clinics">Stomatologija</strong>
+        <p data-sr="Konsultacije, okvirna procena usluge i zakazivanje termina." data-en="Treatment consultation, rough service estimate and booking.">Konsultacije, okvirna procena usluge i zakazivanje termina.</p>
+      </div>
+
+      <div class="industry-card">
+        <div>⚖</div>
+        <strong data-sr="Advokati" data-en="Lawyers">Advokati</strong>
+        <p data-sr="Kvalifikacija slučaja i zakazivanje konsultacije." data-en="Case qualification and consultation booking.">Kvalifikacija slučaja i zakazivanje konsultacije.</p>
+      </div>
+
+      <div class="industry-card">
+        <div>🏨</div>
+        <strong data-sr="Hoteli" data-en="Hotels">Hoteli</strong>
+        <p data-sr="Upiti za rezervacije, događaje i dodatne usluge." data-en="Reservation inquiries, events and additional services.">Upiti za rezervacije, događaje i dodatne usluge.</p>
+      </div>
+
+      <div class="industry-card">
+        <div>🎓</div>
+        <strong data-sr="Edukacija" data-en="Education">Edukacija</strong>
+        <p data-sr="Prijave za kurseve, pitanja o programu i terminima." data-en="Course applications, program questions and scheduling.">Prijave za kurseve, pitanja o programu i terminima.</p>
+      </div>
+
+      <div class="industry-card">
+        <div>🛒</div>
+        <strong data-sr="Maloprodaja" data-en="Retail">Maloprodaja</strong>
+        <p data-sr="Preporuka proizvoda, dostupnost i kontakt za prodaju." data-en="Product recommendations, availability and sales contact.">Preporuka proizvoda, dostupnost i kontakt za prodaju.</p>
+      </div>
+
+      <div class="industry-card">
+        <div>💼</div>
+        <strong data-sr="Osiguranje" data-en="Insurance">Osiguranje</strong>
+        <p data-sr="Kvalifikacija zahteva i slanje podataka agentu." data-en="Request qualification and sending data to an agent.">Kvalifikacija zahteva i slanje podataka agentu.</p>
+      </div>
     </div>
   </section>
 
@@ -560,10 +609,29 @@
     </div>
 
     <div class="steps">
-      <div class="step"><b>01</b><h3>Posetilac otvara sajt</h3><p>AI se pojavljuje kao prodajni konsultant na vašem sajtu.</p></div>
-      <div class="step"><b>02</b><h3>AI započinje razgovor</h3><p>Odgovara na pitanja i razume šta klijent traži.</p></div>
-      <div class="step"><b>03</b><h3>Kvalifikacija</h3><p>Prikuplja budžet, potrebe, lokaciju i kontakt.</p></div>
-      <div class="step"><b>04</b><h3>Lead ide timu</h3><p>Podaci stižu u Telegram, CRM ili n8n workflow.</p></div>
+      <div class="step">
+        <b>01</b>
+        <h3 data-sr="Posetilac otvara sajt" data-en="Visitor opens your website">Posetilac otvara sajt</h3>
+        <p data-sr="AI se pojavljuje kao prodajni konsultant na vašem sajtu." data-en="AI appears as a sales consultant on your website.">AI se pojavljuje kao prodajni konsultant na vašem sajtu.</p>
+      </div>
+
+      <div class="step">
+        <b>02</b>
+        <h3 data-sr="AI započinje razgovor" data-en="AI starts a conversation">AI započinje razgovor</h3>
+        <p data-sr="Odgovara na pitanja i razume šta klijent traži." data-en="It answers questions and understands what the customer needs.">Odgovara na pitanja i razume šta klijent traži.</p>
+      </div>
+
+      <div class="step">
+        <b>03</b>
+        <h3 data-sr="Kvalifikacija" data-en="Qualification">Kvalifikacija</h3>
+        <p data-sr="Prikuplja budžet, potrebe, lokaciju i kontakt." data-en="It collects budget, needs, location and contact details.">Prikuplja budžet, potrebe, lokaciju i kontakt.</p>
+      </div>
+
+      <div class="step">
+        <b>04</b>
+        <h3 data-sr="Lead ide timu" data-en="Lead goes to your team">Lead ide timu</h3>
+        <p data-sr="Podaci stižu u Telegram, CRM ili n8n workflow." data-en="Data goes to Telegram, CRM or an n8n workflow.">Podaci stižu u Telegram, CRM ili n8n workflow.</p>
+      </div>
     </div>
   </section>
 
@@ -579,26 +647,26 @@
       <div class="plan">
         <h3>Starter</h3>
         <strong>€99</strong>
-        <p>Za male biznise koji žele da testiraju AI leadove.</p>
+        <p data-sr="Za male biznise koji žele da testiraju AI leadove." data-en="For small businesses that want to test AI leads.">Za male biznise koji žele da testiraju AI leadove.</p>
       </div>
 
       <div class="plan featured">
         <h3>Business</h3>
         <strong>€199</strong>
-        <p>Za aktivne timove kojima trebaju automatizacija i integracije.</p>
+        <p data-sr="Za aktivne timove kojima trebaju automatizacija i integracije." data-en="For active teams that need automation and integrations.">Za aktivne timove kojima trebaju automatizacija i integracije.</p>
       </div>
 
       <div class="plan">
         <h3>Enterprise</h3>
-        <strong>Custom</strong>
-        <p>Poseban workflow, dodatne integracije i onboarding.</p>
+        <strong data-sr="Po dogovoru" data-en="Custom">Po dogovoru</strong>
+        <p data-sr="Poseban workflow, dodatne integracije i onboarding." data-en="Custom workflow, additional integrations and onboarding.">Poseban workflow, dodatne integracije i onboarding.</p>
       </div>
     </div>
   </section>
 </main>
 
-<footer>
-  © 2026 Infinity AI — AI Sales Consultant Platform
+<footer data-sr="© 2026 Infinity AI — AI prodajni konsultant" data-en="© 2026 Infinity AI — AI Sales Consultant Platform">
+  © 2026 Infinity AI — AI prodajni konsultant
 </footer>
 
 <script>
@@ -608,7 +676,29 @@
   function setPageLang(lang) {
     document.documentElement.lang = lang;
 
+    if (window.InfinitySettings) {
+      window.InfinitySettings.language = lang;
+    }
+
+    if (window.WidgetUI && typeof WidgetUI.updateHeader === 'function') {
+      WidgetUI.updateHeader();
+
+      const hasStartScreen = document.getElementById('aiFreeMessage');
+
+      if (hasStartScreen && window.Messages) {
+        WidgetUI.setMessages(Messages.start());
+      }
+
+      if (window.InfinityAI && InfinityAI.state && !InfinityAI.state.started && window.Messages) {
+        WidgetUI.setMessages(Messages.start());
+      }
+    }
+
     document.querySelectorAll('[data-sr]').forEach(function (el) {
+      el.textContent = el.getAttribute(lang === 'sr' ? 'data-sr' : 'data-en');
+    });
+
+    document.querySelectorAll('option[data-sr]').forEach(function (el) {
       el.textContent = el.getAttribute(lang === 'sr' ? 'data-sr' : 'data-en');
     });
 
@@ -651,6 +741,8 @@
     apiKey: 'house-nekretnine',
     autoOpenDelay: 3000
   });
+
+  setPageLang('sr');
 </script>
 
 </body>
