@@ -136,3 +136,110 @@
   color: #ffffff !important;
   background: #2563eb !important;
 }
+/* ========= INFINITY AI PREMIUM WIDGET STYLE ========= */
+
+.infinity-ai-button {
+  background: linear-gradient(135deg, #2563eb, #60a5fa) !important;
+  box-shadow: 0 18px 60px rgba(37, 99, 235, 0.48) !important;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.infinity-ai-button:hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 24px 80px rgba(37, 99, 235, 0.65) !important;
+}
+
+.infinity-ai-window {
+  background: rgba(11, 16, 32, 0.96) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  border-radius: 26px !important;
+  box-shadow: 0 35px 120px rgba(0,0,0,.65) !important;
+  backdrop-filter: blur(22px);
+}
+
+.infinity-ai-header {
+  background: linear-gradient(135deg, #111827, #1e3a8a) !important;
+  color: #ffffff !important;
+  padding: 18px 20px !important;
+  font-size: 16px !important;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+
+.infinity-ai-messages {
+  background: transparent !important;
+  color: #f8fafc !important;
+}
+
+.infinity-ai-messages p,
+.infinity-ai-messages h1,
+.infinity-ai-messages h2,
+.infinity-ai-messages h3,
+.infinity-ai-messages label,
+.infinity-ai-messages div,
+.infinity-ai-messages span,
+.infinity-ai-messages b,
+.infinity-ai-messages strong {
+  color: #f8fafc !important;
+}
+
+.infinity-ai-messages p {
+  background: rgba(37, 99, 235, 0.16);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  padding: 12px 14px;
+  border-radius: 16px;
+  line-height: 1.5;
+}
+
+.infinity-ai-messages button {
+  color: #f8fafc !important;
+  background: rgba(255,255,255,.08) !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+  border-radius: 14px !important;
+  transition: .2s ease;
+}
+
+.infinity-ai-messages button:hover {
+  background: rgba(37,99,235,.28) !important;
+  border-color: rgba(96,165,250,.38) !important;
+  transform: translateY(-1px);
+}
+
+.infinity-ai-messages .infinity-ai-primary {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #2563eb, #60a5fa) !important;
+  border: none !important;
+  text-align: center !important;
+  font-weight: 800 !important;
+}
+
+.infinity-ai-messages input,
+.infinity-ai-messages textarea,
+.infinity-ai-messages select {
+  color: #f8fafc !important;
+  background: rgba(255,255,255,.08) !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  border-radius: 14px !important;
+  outline: none;
+}
+
+.infinity-ai-messages input:focus,
+.infinity-ai-messages textarea:focus,
+.infinity-ai-messages select:focus {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgba(96,165,250,.18);
+}
+
+.infinity-ai-messages input::placeholder,
+.infinity-ai-messages textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.ai-small-note {
+  color: #94a3b8 !important;
+  font-size: 13px;
+  margin: 14px 0 10px;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+}
