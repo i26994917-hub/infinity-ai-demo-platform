@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Infinity AI Lead Engine Demo</title>
+
+  <link rel="stylesheet" href="./widget.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 20px 40px;
+    }
+
+    .hero {
+      padding: 70px 20px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 42px;
+      margin-bottom: 20px;
+    }
+
+    .hero p {
+      font-size: 20px;
+      max-width: 720px;
+      margin: 0 auto;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      padding: 40px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    }
+
+    .card img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .price {
+      color: #2563eb;
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h2>House Nekretnine</h2>
+</header>
+
+<section class="hero">
+  <h1>Nekretnine u Novom Sadu</h1>
+  <p>
+    AI konsultant pomaže posetiocima sajta da brzo ostave kvalitetan zahtev,
+    a agent odmah dobija lead u Telegramu.
+  </p>
+</section>
+
+<section class="cards">
+  <div class="card">
+    <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200" alt="">
+    <div class="card-body">
+      <div class="price">€136 000</div>
+      <div>Telep · 49 m² · 2 sobe</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200" alt="">
+    <div class="card-body">
+      <div class="price">€142 000</div>
+      <div>Cara Dušana · 43 m² · 2 sobe</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200" alt="">
+    <div class="card-body">
+      <div class="price">€133 700</div>
+      <div>Podbara · 40 m² · 2 sobe</div>
+    </div>
+  </div>
+</section>
+
+<script src="./src/config/settings.js"></script>
+
+<script src="./src/ui/widget-ui.js"></script>
+<script src="./src/ui/messages.js"></script>
+<script src="./src/ui/forms.js"></script>
+
+<script src="./src/services/api.js"></script>
+<script src="./src/services/property-search.js"></script>
+<script src="./src/services/save-lead.js"></script>
+<script src="./src/services/ai-brain.js"></script>
+
+<script src="./src/flows/contact-flow.js"></script>
+<script src="./src/flows/buy-flow.js"></script>
+<script src="./src/flows/sell-flow.js"></script>
+<script src="./src/flows/rent-flow.js"></script>
+<script src="./src/flows/let-flow.js"></script>
+<script src="./src/flows/other-flow.js"></script>
+<script src="./src/flows/ai-chat-flow.js"></script>
+
+<script src="./widget.js"></script>
+
+<script>
+  InfinityAI.init({
+    apiKey: 'sk_live_house_001',
+    autoOpenDelay: 3000
+  });
+</script>
+
+</body>
+</html>

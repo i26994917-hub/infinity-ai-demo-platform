@@ -1,0 +1,85 @@
+.infinity-ai-button {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0,0,0,.2);
+  z-index: 9999;
+}
+
+.infinity-ai-window {
+  position: fixed;
+  right: 20px;
+  bottom: 100px;
+  width: 390px;
+  max-width: calc(100vw - 40px);
+  height: 570px;
+  max-height: calc(100vh - 140px);
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.22);
+  overflow: hidden;
+  display: none;
+  z-index: 9999;
+}
+
+.infinity-ai-header {
+  background: #2563eb;
+  color: white;
+  padding: 16px;
+  font-weight: bold;
+}
+
+.infinity-ai-messages {
+  height: calc(100% - 52px);
+  padding: 16px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.infinity-ai-messages p {
+  margin-top: 0;
+  line-height: 1.45;
+}
+
+.infinity-ai-messages button {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.infinity-ai-messages button:hover {
+  background: #f3f4f6;
+}
+
+.infinity-ai-messages input,
+.infinity-ai-messages textarea,
+.infinity-ai-messages select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+.infinity-ai-primary {
+  background: #2563eb !important;
+  color: white !important;
+  border: none !important;
+  text-align: center !important;
+}
