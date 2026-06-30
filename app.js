@@ -295,17 +295,32 @@ function setupLeadForm() {
     const phone = $("#leadPhone")?.value.trim() || "";
 
     const payload = {
-      name,
-      phone,
-      source: "Infinity AI Demo Platform",
-      language: currentLang,
-      business: "real_estate",
-      country: "Serbia",
-      city: "Novi Sad",
-      message: currentLang === "sr"
-        ? "Lead sa demo platforme Infinity AI"
-        : "Lead from Infinity AI demo platform"
-    };
+  apiKey: "house-nekretnine",
+
+  name: name,
+  phone: phone,
+  Phone: phone,
+
+  email: "",
+  budget: "",
+  Budget: "",
+
+  district: "Novi Sad",
+  District: "Novi Sad",
+
+  rooms: "",
+  Rooms: "",
+
+  message: currentLang === "sr"
+    ? "Lead sa Infinity AI demo platforme"
+    : "Lead from Infinity AI demo platform",
+
+  Message: currentLang === "sr"
+    ? "Lead sa Infinity AI demo platforme"
+    : "Lead from Infinity AI demo platform",
+
+  source: "Infinity AI Demo Platform"
+};
 
     addLead({
       name: name || "New Lead",
