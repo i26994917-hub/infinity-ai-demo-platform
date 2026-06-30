@@ -1,0 +1,15 @@
+{
+  "status": "ready",
+  "platform": "Infinity AI Demo Platform v2",
+  "languages": [
+    "en",
+    "sr"
+  ],
+  "niche": "real_estate",
+  "integrations_ready": [
+    "n8n",
+    "Supabase",
+    "CRM",
+    "Email"
+  ]
+}
