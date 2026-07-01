@@ -71,7 +71,20 @@ window.AIChatFlow = {
 
     InfinityAI.state.questionCount = InfinityAI.state.questionCount || 0;
     InfinityAI.state.preferences = InfinityAI.state.preferences || '';
+    InfinityAI.state.dialogText = InfinityAI.state.dialogText || '';
     InfinityAI.state.requestType = InfinityAI.state.requestType || 'buy';
+  },
+
+  addToDialog: function(role, text) {
+    this.ensureState();
+
+    if (!text) return;
+
+    var label = role === 'ai' ? '🤖 AI' : '👤 Client';
+
+    InfinityAI.state.dialogText =
+      (InfinityAI.state.dialogText || '') +
+      label + ': ' + text + '\n\n';
   },
 
   sendFirstMessage: async function() {
@@ -89,6 +102,7 @@ window.AIChatFlow = {
     InfinityAI.state.searchDone = false;
     InfinityAI.state.roomsNotImportant = false;
     InfinityAI.state.preferences = '';
+    InfinityAI.state.dialogText = '';
     InfinityAI.state.requestType = 'buy';
 
     await this.processMessage(message, {});
@@ -110,6 +124,8 @@ window.AIChatFlow = {
 
   processMessage: async function(message, previousState) {
     this.ensureState();
+
+    this.addToDialog('client', message);
 
     WidgetUI.setMessages('<p>' + this.text('thinking') + '</p>');
 
@@ -458,48 +474,96 @@ window.AIChatFlow = {
   },
 
   runSearchOnly: async function() {
-  if (InfinityAI.state.searchDone) return;
+    if (InfinityAI.state.searchDone) return;
 
-  WidgetUI.setMessages('<p>' + this.text('searching') + '</p>');
+    WidgetUI.setMessages('<p>' + this.text('searching') + '</p>');
 
-  try {
-    /*
-      ВАЖНО ДЛЯ ДЕМО:
-      Район НЕ отправляем в фильтр поиска, потому что в базе районы могут быть:
-      NOVI SAD LIMAN4, NOVI SAD LIMAN 3 и т.д.
-      И точный фильтр NOVI SAD LIMAN возвращает 0.
-    */
+    try {
+      var searchParams = {
+        budget: InfinityAI.state.budget
+      };
 
-    var searchParams = {
-      budget: InfinityAI.state.budget
-    };
+      if (!InfinityAI.state.roomsNotImportant && InfinityAI.state.rooms) {
+        searchParams.rooms = InfinityAI.state.rooms;
+      }
 
-    if (!InfinityAI.state.roomsNotImportant && InfinityAI.state.rooms) {
-      searchParams.rooms = InfinityAI.state.rooms;
+      console.log('Infinity AI search params:', searchParams);
+
+      var data = await PropertySearchService.search(searchParams);
+
+      console.log('Infinity AI raw search response:', data);
+
+      var count = 0;
+
+      if (Array.isArray(data)) {
+        count = data.length;
+      }
+
+      else if (data && Array.isArray(data.data)) {
+        count = data.data.length;
+      }
+
+      else if (data && data.data && Array.isArray(data.data.properties)) {
+        count = data.data.properties.length;
+      }
+
+      else if (data && Array.isArray(data.properties)) {
+        count = data.properties.length;
+      }
+
+      else if (data && Array.isArray(data.results)) {
+        count = data.results.length;
+      }
+
+      else if (data && Array.isArray(data.items)) {
+        count = data.items.length;
+      }
+
+      else if (data && Array.isArray(data.offers)) {
+        count = data.offers.length;
+      }
+
+      else if (data && typeof data.count === 'number') {
+        count = data.count;
+      }
+
+      else if (data && data.data && typeof data.data.count === 'number') {
+        count = data.data.count;
+      }
+
+      if (!count && data && typeof data === 'object') {
+        var foundArray = null;
+
+        function findArray(obj) {
+          if (!obj || foundArray) return;
+
+          if (Array.isArray(obj)) {
+            foundArray = obj;
+            return;
+          }
+
+          if (typeof obj === 'object') {
+            Object.keys(obj).forEach(function(key) {
+              findArray(obj[key]);
+            });
+          }
+        }
+
+        findArray(data);
+
+        if (foundArray) {
+          count = foundArray.length;
+        }
+      }
+
+      InfinityAI.state.propertiesCount = count;
+      InfinityAI.state.searchDone = true;
+
+    } catch (e) {
+      console.error(e);
+      WidgetUI.setMessages('<p>' + this.text('searchError') + '</p>');
     }
-
-    console.log('Infinity AI search params:', searchParams);
-
-    var data = await PropertySearchService.search(searchParams);
-
-    var count = 0;
-
-    if (Array.isArray(data)) {
-      count = data.length;
-    } else if (data && Array.isArray(data.data)) {
-      count = data.data.length;
-    } else if (data && typeof data.count === 'number') {
-      count = data.count;
-    }
-
-    InfinityAI.state.propertiesCount = count;
-    InfinityAI.state.searchDone = true;
-
-  } catch (e) {
-    console.error(e);
-    WidgetUI.setMessages('<p>' + this.text('searchError') + '</p>');
-  }
-},
+  },
 
   getRequiredQuestion: function() {
     if (!InfinityAI.state.budget) {
@@ -520,8 +584,12 @@ window.AIChatFlow = {
   askNextQuestion: function(ai) {
     ai = ai || {};
 
+    var question = ai.next_question || this.getRequiredQuestion();
+
+    this.addToDialog('ai', question);
+
     WidgetUI.setMessages(
-      '<p><b>' + (ai.next_question || this.getRequiredQuestion()) + '</b></p>' +
+      '<p><b>' + question + '</b></p>' +
       '<textarea id="aiFollowupMessage" placeholder="' + this.text('yourAnswer') + '" style="width:100%;height:80px;padding:10px;"></textarea><br><br>' +
       '<button class="infinity-ai-primary" onclick="AIChatFlow.sendFollowup()">' + this.text('continue') + '</button>'
     );
@@ -551,6 +619,24 @@ window.AIChatFlow = {
       'Deo grada: ' + (InfinityAI.state.district || '-') + '\n' +
       'Pronađeno objekata: ' + (InfinityAI.state.propertiesCount || 0) + '\n' +
       'Detalji: ' + (InfinityAI.state.preferences || ai.preferences || '');
+
+    var finalMessage = '';
+
+    if (InfinityAI.state.searchDone) {
+      finalMessage =
+        this.text('foundPrefix') +
+        (InfinityAI.state.propertiesCount || 0) +
+        this.text('foundSuffix') +
+        ' ' +
+        this.text('foundContact');
+    } else {
+      finalMessage =
+        this.text('thanksTitle') +
+        ' ' +
+        this.text('thanksContact');
+    }
+
+    this.addToDialog('ai', finalMessage);
 
     var block = '';
 
