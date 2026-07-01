@@ -458,48 +458,48 @@ window.AIChatFlow = {
   },
 
   runSearchOnly: async function() {
-    if (InfinityAI.state.searchDone) return;
+  if (InfinityAI.state.searchDone) return;
 
-    WidgetUI.setMessages('<p>' + this.text('searching') + '</p>');
+  WidgetUI.setMessages('<p>' + this.text('searching') + '</p>');
 
-    try {
-      var searchParams = {
-        budget: InfinityAI.state.budget
-      };
+  try {
+    /*
+      ВАЖНО ДЛЯ ДЕМО:
+      Район НЕ отправляем в фильтр поиска, потому что в базе районы могут быть:
+      NOVI SAD LIMAN4, NOVI SAD LIMAN 3 и т.д.
+      И точный фильтр NOVI SAD LIMAN возвращает 0.
+    */
 
-      if (!InfinityAI.state.roomsNotImportant && InfinityAI.state.rooms) {
-        searchParams.rooms = InfinityAI.state.rooms;
-      }
+    var searchParams = {
+      budget: InfinityAI.state.budget
+    };
 
-      if (
-        InfinityAI.state.district &&
-        InfinityAI.state.district !== 'NOVI SAD'
-      ) {
-        searchParams.district = InfinityAI.state.district;
-      }
-
-      console.log('Infinity AI search params:', searchParams);
-
-      var data = await PropertySearchService.search(searchParams);
-
-      var count = 0;
-
-      if (Array.isArray(data)) {
-        count = data.length;
-      } else if (data && Array.isArray(data.data)) {
-        count = data.data.length;
-      } else if (data && typeof data.count === 'number') {
-        count = data.count;
-      }
-
-      InfinityAI.state.propertiesCount = count;
-      InfinityAI.state.searchDone = true;
-
-    } catch (e) {
-      console.error(e);
-      WidgetUI.setMessages('<p>' + this.text('searchError') + '</p>');
+    if (!InfinityAI.state.roomsNotImportant && InfinityAI.state.rooms) {
+      searchParams.rooms = InfinityAI.state.rooms;
     }
-  },
+
+    console.log('Infinity AI search params:', searchParams);
+
+    var data = await PropertySearchService.search(searchParams);
+
+    var count = 0;
+
+    if (Array.isArray(data)) {
+      count = data.length;
+    } else if (data && Array.isArray(data.data)) {
+      count = data.data.length;
+    } else if (data && typeof data.count === 'number') {
+      count = data.count;
+    }
+
+    InfinityAI.state.propertiesCount = count;
+    InfinityAI.state.searchDone = true;
+
+  } catch (e) {
+    console.error(e);
+    WidgetUI.setMessages('<p>' + this.text('searchError') + '</p>');
+  }
+},
 
   getRequiredQuestion: function() {
     if (!InfinityAI.state.budget) {
