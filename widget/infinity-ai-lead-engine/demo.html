@@ -1188,17 +1188,6 @@
     InfinityAI.state.dialogText = InfinityAI.state.dialogText || '';
   }
 
-  function cleanText(html) {
-    return (html || '')
-      .toString()
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/p>/gi, '\n')
-      .replace(/<\/h3>/gi, '\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
-  }
-
   function addDialogLine(role, text) {
     ensureDialogState();
 
@@ -1245,19 +1234,9 @@
   }
 
   /*
-    1. Сохраняем сообщения клиента.
-  */
-  if (window.AIChatFlow && typeof AIChatFlow.processMessage === 'function') {
-    const originalProcessMessage = AIChatFlow.processMessage;
-
-    AIChatFlow.processMessage = async function(message, previousState) {
-      addDialogLine('client', message);
-      return await originalProcessMessage.call(this, message, previousState);
-    };
-  }
-
-  /*
-    2. Сохраняем вопросы AI, которые выводятся в виджет.
+    Сохраняем только вопросы/сообщения AI.
+    Сообщения клиента уже сохраняются в ai-chat-flow.js,
+    поэтому здесь их НЕ перехватываем, чтобы не было дублей.
   */
   if (window.WidgetUI && typeof WidgetUI.setMessages === 'function') {
     const originalSetMessages = WidgetUI.setMessages;
@@ -1274,7 +1253,7 @@
   }
 
   /*
-    3. Перед отправкой лида добавляем dialog/chat_dialog/conversation в payload.
+    Перед отправкой лида добавляем dialog/chat_dialog/conversation в payload.
   */
   if (window.SaveLeadService && typeof SaveLeadService.save === 'function') {
     const originalSaveLead = SaveLeadService.save;
