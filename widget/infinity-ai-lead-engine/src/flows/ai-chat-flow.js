@@ -59,16 +59,26 @@ window.AIChatFlow = {
       return this.texts[lang][key];
     }
 
-    if (this.texts.sr[key]) {
-      return this.texts.sr[key];
+    return this.texts.sr[key] || key;
+  },
+
+  ensureState: function() {
+    if (!window.InfinityAI) return;
+
+    if (!InfinityAI.state) {
+      InfinityAI.state = {};
     }
 
-    return key;
+    InfinityAI.state.questionCount = InfinityAI.state.questionCount || 0;
+    InfinityAI.state.preferences = InfinityAI.state.preferences || '';
+    InfinityAI.state.requestType = InfinityAI.state.requestType || 'buy';
   },
 
   sendFirstMessage: async function() {
+    this.ensureState();
+
     var input = document.getElementById('aiFreeMessage');
-    var message = input ? input.value : '';
+    var message = input ? input.value.trim() : '';
 
     if (!message) {
       alert(this.text('enterQuestion'));
@@ -78,13 +88,17 @@ window.AIChatFlow = {
     InfinityAI.state.questionCount = 0;
     InfinityAI.state.searchDone = false;
     InfinityAI.state.roomsNotImportant = false;
+    InfinityAI.state.preferences = '';
+    InfinityAI.state.requestType = 'buy';
 
     await this.processMessage(message, {});
   },
 
   sendFollowup: async function() {
+    this.ensureState();
+
     var input = document.getElementById('aiFollowupMessage');
-    var message = input ? input.value : '';
+    var message = input ? input.value.trim() : '';
 
     if (!message) {
       alert(this.text('enterAnswer'));
@@ -95,108 +109,57 @@ window.AIChatFlow = {
   },
 
   processMessage: async function(message, previousState) {
-  WidgetUI.setMessages('<p>' + this.text('thinking') + '</p>');
+    this.ensureState();
 
-  try {
-    /*
-      1. Сначала локально извлекаем параметры из сообщения,
-      НЕ дожидаясь AI Brain.
-      Это нужно, чтобы поиск запускался стабильно на SR и EN.
-    */
-    this.applyAIState(
-      {
-        intent: 'buy'
-      },
-      message,
-      previousState || {}
-    );
+    WidgetUI.setMessages('<p>' + this.text('thinking') + '</p>');
 
-    /*
-      2. Если уже есть бюджет + комнаты,
-      сразу запускаем поиск по базе.
-    */
-    if (this.shouldRunSearch({ intent: 'buy' })) {
-      await this.runSearchOnly();
+    try {
+      this.applyMessage(message);
 
-      return this.askContactFromAI({
-        intent: 'buy',
-        preferences: InfinityAI.state.preferences || message
-      });
-    }
+      if (this.shouldRunSearch()) {
+        await this.runSearchOnly();
 
-    /*
-      3. Если данных пока недостаточно,
-      тогда уже обращаемся к AI Brain,
-      чтобы он задал уточняющий вопрос.
-    */
-    const ai = await AIBrainService.send(message, previousState || {});
-
-    this.applyAIState(ai || {}, message, previousState || {});
-
-    /*
-      4. После ответа AI снова проверяем:
-      появились ли бюджет + комнаты.
-    */
-    if (this.shouldRunSearch({ intent: 'buy' })) {
-      await this.runSearchOnly();
-
-      return this.askContactFromAI({
-        intent: 'buy',
-        preferences: InfinityAI.state.preferences || message
-      });
-    }
-
-    var nextQuestion = this.localizeQuestion((ai && ai.next_question) || '');
-
-    if (nextQuestion && this.canAskMoreQuestions()) {
-      this.incrementQuestionCount();
-
-      return this.askNextQuestion({
-        next_question: nextQuestion
-      });
-    }
-
-    if (this.canAskMoreQuestions()) {
-      this.incrementQuestionCount();
-
-      return this.askNextQuestion({
-        next_question: this.getRequiredQuestion()
-      });
-    }
-
-    return this.askContactFromAI(ai || {});
-
-  } catch (e) {
-    console.error(e);
-    WidgetUI.setMessages('<p>' + this.text('generalError') + '</p>');
-  }
-},
-
-      var nextQuestion = this.localizeQuestion((ai && ai.next_question) || '');
-
-      if (nextQuestion && this.canAskMoreQuestions()) {
-        this.incrementQuestionCount();
-
-        return this.askNextQuestion({
-          next_question: nextQuestion
+        return this.askContactFromAI({
+          intent: 'buy',
+          preferences: InfinityAI.state.preferences || message
         });
       }
 
-      if (this.isQualifiedForContact(ai || {})) {
-        return this.askContactFromAI(ai || {});
+      var ai = null;
+
+      try {
+        if (window.AIBrainService && typeof AIBrainService.send === 'function') {
+          ai = await AIBrainService.send(message, previousState || {});
+        }
+      } catch (aiError) {
+        console.warn('AI Brain error, using local flow:', aiError);
+      }
+
+      if (ai) {
+        this.applyAI(ai, message, previousState || {});
+      }
+
+      if (this.shouldRunSearch()) {
+        await this.runSearchOnly();
+
+        return this.askContactFromAI({
+          intent: 'buy',
+          preferences: InfinityAI.state.preferences || message
+        });
       }
 
       if (this.canAskMoreQuestions()) {
         this.incrementQuestionCount();
 
-        var question = this.getRequiredQuestion();
-
         return this.askNextQuestion({
-          next_question: question
+          next_question: this.getRequiredQuestion()
         });
       }
 
-      return this.askContactFromAI(ai || {});
+      return this.askContactFromAI({
+        intent: 'buy',
+        preferences: InfinityAI.state.preferences || message
+      });
 
     } catch (e) {
       console.error(e);
@@ -204,182 +167,119 @@ window.AIChatFlow = {
     }
   },
 
-  getRequiredQuestion: function() {
-    if (!InfinityAI.state.budget) {
-      return this.text('budgetQuestion');
-    }
-
-    if (!InfinityAI.state.rooms && !InfinityAI.state.roomsNotImportant) {
-      return this.text('roomsQuestion');
-    }
-
-    if (!InfinityAI.state.district) {
-      return this.text('districtQuestion');
-    }
-
-    return this.text('otherImportantQuestion');
-  },
-
-  localizeQuestion: function(question) {
-    var lang = this.lang();
-    var q = (question || '').toString();
-    var lower = q.toLowerCase();
-
-    if (!q) return '';
-
-    if (lang !== 'en') {
-      return q;
-    }
-
-    if (
-      lower.includes('budžet') ||
-      lower.includes('budzet') ||
-      lower.includes('бюджет')
-    ) {
-      return this.text('budgetQuestion');
-    }
-
-    if (
-      lower.includes('koliko soba') ||
-      lower.includes('broj soba') ||
-      lower.includes('soba') ||
-      lower.includes('комнат')
-    ) {
-      return this.text('roomsQuestion');
-    }
-
-    if (
-      lower.includes('deo grada') ||
-      lower.includes('koji deo') ||
-      lower.includes('lokacija') ||
-      lower.includes('район')
-    ) {
-      return this.text('districtQuestion');
-    }
-
-    if (
-      lower.includes('još neki') ||
-      lower.includes('jos neki') ||
-      lower.includes('važan zahtev') ||
-      lower.includes('vazan zahtev')
-    ) {
-      return this.text('otherImportantQuestion');
-    }
-
-    return q;
-  },
-
-  applyAIState: function(ai, userMessage, previous) {
+  applyAI: function(ai, userMessage, previous) {
     ai = ai || {};
     previous = previous || {};
 
-    var lowerMessage = (userMessage || '').toString().toLowerCase();
-
-    var looksLikePropertySearch =
-      lowerMessage.includes('stan') ||
-      lowerMessage.includes('stana') ||
-      lowerMessage.includes('nekretn') ||
-      lowerMessage.includes('kupujem') ||
-      lowerMessage.includes('kupiti') ||
-      lowerMessage.includes('tražim') ||
-      lowerMessage.includes('trazim') ||
-      lowerMessage.includes('apartment') ||
-      lowerMessage.includes('flat') ||
-      lowerMessage.includes('house') ||
-      lowerMessage.includes('property') ||
-      lowerMessage.includes('looking for') ||
-      lowerMessage.includes('buy');
-
-    var roomsNotImportant =
-      lowerMessage.includes('не важно') ||
-      lowerMessage.includes('не имеет значения') ||
-      lowerMessage.includes('без разницы') ||
-      lowerMessage.includes('nije bitno') ||
-      lowerMessage.includes('nije važno') ||
-      lowerMessage.includes('svejedno') ||
-      lowerMessage.includes('bilo koji') ||
-      lowerMessage.includes('does not matter') ||
-      lowerMessage.includes('not important') ||
-      lowerMessage.includes('any rooms') ||
-      lowerMessage.includes('any number');
-
-    InfinityAI.state.requestType =
-      ai.intent ||
-      previous.intent ||
-      InfinityAI.state.requestType ||
-      'unknown';
-
-    if (
-      InfinityAI.state.requestType === 'unknown' ||
-      !InfinityAI.state.requestType
-    ) {
-      if (looksLikePropertySearch) {
-        InfinityAI.state.requestType = 'buy';
-      }
+    if (ai.intent) {
+      InfinityAI.state.requestType = ai.intent;
     }
 
-    InfinityAI.state.budget =
+    var aiBudget =
       this.normalizeBudget(ai.budget) ||
       this.normalizeBudget(ai.price) ||
       this.normalizeBudget(previous.budget) ||
-      this.normalizeBudget(previous.price) ||
-      this.normalizeBudget(InfinityAI.state.budget) ||
-      this.extractBudget(userMessage) ||
-      0;
+      this.normalizeBudget(previous.price);
+
+    if (aiBudget && !InfinityAI.state.budget) {
+      InfinityAI.state.budget = aiBudget;
+    }
+
+    var aiRooms =
+      this.normalizeRooms(ai.rooms) ||
+      this.normalizeRooms(previous.rooms);
+
+    if (aiRooms && !InfinityAI.state.rooms) {
+      InfinityAI.state.rooms = aiRooms;
+    }
+
+    var aiDistrict =
+      this.normalizeDistrict(ai.district) ||
+      this.normalizeDistrict(previous.district);
+
+    if (aiDistrict && !InfinityAI.state.district) {
+      InfinityAI.state.district = aiDistrict;
+    }
+
+    if (ai.preferences) {
+      InfinityAI.state.preferences =
+        (InfinityAI.state.preferences + '\n' + ai.preferences).trim();
+    }
+
+    InfinityAI.state.ai = {
+      intent: InfinityAI.state.requestType || 'buy',
+      budget: InfinityAI.state.budget || 0,
+      rooms: InfinityAI.state.rooms || 0,
+      district: InfinityAI.state.district || '',
+      preferences: InfinityAI.state.preferences || '',
+      next_question: ai.next_question || ''
+    };
+  },
+
+  applyMessage: function(message) {
+    var text = (message || '').toString();
+    var lower = text.toLowerCase();
+
+    var looksLikePropertySearch =
+      lower.includes('stan') ||
+      lower.includes('stana') ||
+      lower.includes('nekretn') ||
+      lower.includes('kupujem') ||
+      lower.includes('kupiti') ||
+      lower.includes('tražim') ||
+      lower.includes('trazim') ||
+      lower.includes('apartment') ||
+      lower.includes('flat') ||
+      lower.includes('house') ||
+      lower.includes('property') ||
+      lower.includes('looking for') ||
+      lower.includes('buy');
+
+    if (looksLikePropertySearch) {
+      InfinityAI.state.requestType = 'buy';
+    }
+
+    var roomsNotImportant =
+      lower.includes('nije bitno') ||
+      lower.includes('nije važno') ||
+      lower.includes('nije vazno') ||
+      lower.includes('svejedno') ||
+      lower.includes('bilo koji') ||
+      lower.includes('does not matter') ||
+      lower.includes('not important') ||
+      lower.includes('any rooms') ||
+      lower.includes('any number');
 
     if (roomsNotImportant) {
       InfinityAI.state.rooms = 0;
       InfinityAI.state.roomsNotImportant = true;
-    } else {
-      InfinityAI.state.rooms =
-        this.normalizeRooms(ai.rooms) ||
-        this.normalizeRooms(previous.rooms) ||
-        this.normalizeRooms(InfinityAI.state.rooms) ||
-        this.extractRooms(userMessage) ||
-        0;
     }
 
-    var normalizedAIDistrict = this.normalizeDistrict(ai.district);
-    var normalizedPreviousDistrict = this.normalizeDistrict(previous.district);
-    var normalizedCurrentDistrict = this.normalizeDistrict(InfinityAI.state.district);
-    var normalizedMessageDistrict = this.extractDistrict(userMessage);
+    var budget = this.extractBudget(text);
+    var rooms = this.extractRooms(text);
+    var district = this.extractDistrict(text);
 
-    InfinityAI.state.district =
-      normalizedAIDistrict ||
-      normalizedPreviousDistrict ||
-      normalizedCurrentDistrict ||
-      normalizedMessageDistrict ||
-      '';
+    if (budget) {
+      InfinityAI.state.budget = budget;
+    }
 
-    var oldPreferences =
-      InfinityAI.state.preferences ||
-      previous.preferences ||
-      '';
+    if (rooms && !InfinityAI.state.roomsNotImportant) {
+      InfinityAI.state.rooms = rooms;
+    }
 
-    var newPreferences =
-      ai.preferences ||
-      userMessage ||
-      '';
+    if (district) {
+      InfinityAI.state.district = district;
+    }
 
     InfinityAI.state.preferences =
-      (oldPreferences + '\n' + newPreferences).trim();
+      ((InfinityAI.state.preferences || '') + '\n' + text).trim();
 
     InfinityAI.state.ai = {
-      intent: InfinityAI.state.requestType,
-      budget: InfinityAI.state.budget,
-      price: ai.price || previous.price || null,
-      rooms: InfinityAI.state.rooms,
-      district: InfinityAI.state.district,
-      property_type:
-        ai.property_type ||
-        previous.property_type ||
-        this.extractPropertyType(userMessage) ||
-        null,
-      preferences: InfinityAI.state.preferences,
-      missing_fields: ai.missing_fields || [],
-      next_question: ai.next_question || '',
-      ready_for_search: ai.ready_for_search || false,
-      ready_for_contact: ai.ready_for_contact || false
+      intent: InfinityAI.state.requestType || 'buy',
+      budget: InfinityAI.state.budget || 0,
+      rooms: InfinityAI.state.rooms || 0,
+      district: InfinityAI.state.district || '',
+      preferences: InfinityAI.state.preferences || ''
     };
   },
 
@@ -402,7 +302,6 @@ window.AIChatFlow = {
     }
 
     var numbers = text.match(/\d[\d\s.,]*/g);
-
     if (!numbers) return 0;
 
     for (var i = 0; i < numbers.length; i++) {
@@ -413,7 +312,9 @@ window.AIChatFlow = {
           .replace(/,/g, '')
       );
 
-      if (!isNaN(n) && n >= 10000) return n;
+      if (!isNaN(n) && n >= 10000) {
+        return n;
+      }
     }
 
     return 0;
@@ -435,7 +336,6 @@ window.AIChatFlow = {
     if (
       text.includes('jednosoban') ||
       text.includes('jedna soba') ||
-      text.includes('однособ') ||
       text.includes('1 sob') ||
       text.includes('one bedroom') ||
       text.includes('one-bedroom') ||
@@ -446,7 +346,7 @@ window.AIChatFlow = {
     if (
       text.includes('dvosoban') ||
       text.includes('dve sobe') ||
-      text.includes('двухкомнат') ||
+      text.includes('dve soba') ||
       text.includes('2 sob') ||
       text.includes('two bedroom') ||
       text.includes('two-bedroom') ||
@@ -457,8 +357,6 @@ window.AIChatFlow = {
     if (
       text.includes('trosoban') ||
       text.includes('tri sobe') ||
-      text.includes('трехкомнат') ||
-      text.includes('трёхкомнат') ||
       text.includes('3 sob') ||
       text.includes('three bedroom') ||
       text.includes('three-bedroom') ||
@@ -467,12 +365,13 @@ window.AIChatFlow = {
     ) return 3;
 
     if (
+      text.includes('četvorosoban') ||
+      text.includes('cetvorosoban') ||
+      text.includes('4 sob') ||
       text.includes('four bedroom') ||
       text.includes('four-bedroom') ||
       text.includes('4 bedroom') ||
-      text.includes('4-bedroom') ||
-      text.includes('četvorosoban') ||
-      text.includes('cetvorosoban')
+      text.includes('4-bedroom')
     ) return 4;
 
     var numbers = text.match(/\d[\d\s.,]*/g);
@@ -486,7 +385,9 @@ window.AIChatFlow = {
           .replace(/,/g, '')
       );
 
-      if (!isNaN(n) && n > 0 && n <= 10) return n;
+      if (!isNaN(n) && n > 0 && n <= 10) {
+        return n;
+      }
     }
 
     return 0;
@@ -500,25 +401,24 @@ window.AIChatFlow = {
     if (
       text.includes('centar') ||
       text.includes('center') ||
-      text.includes('centre') ||
-      text.includes('центр')
+      text.includes('centre')
     ) {
       return 'NOVI SAD CENTAR';
     }
 
-    if (text.includes('liman') || text.includes('лиман')) {
+    if (text.includes('liman')) {
       return 'NOVI SAD LIMAN';
     }
 
-    if (text.includes('telep') || text.includes('телеп')) {
+    if (text.includes('telep')) {
       return 'NOVI SAD TELEP';
     }
 
-    if (text.includes('podbara') || text.includes('подбара')) {
+    if (text.includes('podbara')) {
       return 'NOVI SAD PODBARA';
     }
 
-    if (text.includes('detelinara') || text.includes('детелинара')) {
+    if (text.includes('detelinara')) {
       return 'NOVI SAD DETELINARA';
     }
 
@@ -532,66 +432,30 @@ window.AIChatFlow = {
 
     if (
       text.includes('novi sad') ||
-      text.includes('novom sadu') ||
-      text.includes('нови сад') ||
-      text.includes('новом саду') ||
-      text.includes('noi sad')
+      text.includes('novom sadu')
     ) {
       return 'NOVI SAD';
     }
 
-    return value || '';
+    return '';
   },
 
   extractDistrict: function(message) {
     return this.normalizeDistrict(message);
   },
 
-  extractPropertyType: function(message) {
-    var text = (message || '').toString().toLowerCase();
+  shouldRunSearch: function() {
+    if (InfinityAI.state.searchDone) return false;
 
-    if (
-      text.includes('квартир') ||
-      text.includes('stan') ||
-      text.includes('stana') ||
-      text.includes('apartment') ||
-      text.includes('flat')
-    ) {
-      return 'apartment';
-    }
+    var hasBudget = Boolean(InfinityAI.state.budget);
 
-    if (
-      text.includes('дом') ||
-      text.includes('kuća') ||
-      text.includes('kuca') ||
-      text.includes('house')
-    ) {
-      return 'house';
-    }
+    var hasRooms = Boolean(
+      InfinityAI.state.rooms ||
+      InfinityAI.state.roomsNotImportant
+    );
 
-    return null;
+    return Boolean(hasBudget && hasRooms);
   },
-
-  canAskMoreQuestions: function() {
-    InfinityAI.state.questionCount = InfinityAI.state.questionCount || 0;
-    return InfinityAI.state.questionCount < this.maxQuestions;
-  },
-
-  incrementQuestionCount: function() {
-    InfinityAI.state.questionCount = InfinityAI.state.questionCount || 0;
-    InfinityAI.state.questionCount++;
-  },
-
- shouldRunSearch: function(ai) {
-  if (InfinityAI.state.searchDone) return false;
-
-  var hasSearchParams = Boolean(
-    InfinityAI.state.budget &&
-    (InfinityAI.state.rooms || InfinityAI.state.roomsNotImportant)
-  );
-
-  return hasSearchParams;
-},
 
   runSearchOnly: async function() {
     if (InfinityAI.state.searchDone) return;
@@ -599,16 +463,24 @@ window.AIChatFlow = {
     WidgetUI.setMessages('<p>' + this.text('searching') + '</p>');
 
     try {
-      const searchParams = {
-        budget: InfinityAI.state.budget,
-        district: InfinityAI.state.district
+      var searchParams = {
+        budget: InfinityAI.state.budget
       };
 
       if (!InfinityAI.state.roomsNotImportant && InfinityAI.state.rooms) {
         searchParams.rooms = InfinityAI.state.rooms;
       }
 
-      const data = await PropertySearchService.search(searchParams);
+      if (
+        InfinityAI.state.district &&
+        InfinityAI.state.district !== 'NOVI SAD'
+      ) {
+        searchParams.district = InfinityAI.state.district;
+      }
+
+      console.log('Infinity AI search params:', searchParams);
+
+      var data = await PropertySearchService.search(searchParams);
 
       var count = 0;
 
@@ -629,70 +501,40 @@ window.AIChatFlow = {
     }
   },
 
+  getRequiredQuestion: function() {
+    if (!InfinityAI.state.budget) {
+      return this.text('budgetQuestion');
+    }
+
+    if (!InfinityAI.state.rooms && !InfinityAI.state.roomsNotImportant) {
+      return this.text('roomsQuestion');
+    }
+
+    if (!InfinityAI.state.district) {
+      return this.text('districtQuestion');
+    }
+
+    return this.text('otherImportantQuestion');
+  },
+
   askNextQuestion: function(ai) {
     ai = ai || {};
 
-    var foundText = '';
-
-    if (InfinityAI.state.searchDone) {
-      foundText =
-        '<h3>' +
-        this.text('foundPrefix') +
-        InfinityAI.state.propertiesCount +
-        this.text('foundSuffix') +
-        '</h3>';
-    }
-
     WidgetUI.setMessages(
-      foundText +
-      '<p><b>' + this.localizeQuestion(ai.next_question || this.getRequiredQuestion()) + '</b></p>' +
+      '<p><b>' + (ai.next_question || this.getRequiredQuestion()) + '</b></p>' +
       '<textarea id="aiFollowupMessage" placeholder="' + this.text('yourAnswer') + '" style="width:100%;height:80px;padding:10px;"></textarea><br><br>' +
       '<button class="infinity-ai-primary" onclick="AIChatFlow.sendFollowup()">' + this.text('continue') + '</button>'
     );
   },
 
-  isQualifiedForContact: function(ai) {
-    ai = ai || {};
+  canAskMoreQuestions: function() {
+    InfinityAI.state.questionCount = InfinityAI.state.questionCount || 0;
+    return InfinityAI.state.questionCount < this.maxQuestions;
+  },
 
-    var intent = (
-      ai.intent ||
-      InfinityAI.state.requestType ||
-      ''
-    ).toString().toLowerCase();
-
-    if (
-      intent === 'buy' ||
-      intent.includes('buy') ||
-      intent.includes('property') ||
-      intent.includes('apartment') ||
-      intent.includes('stan') ||
-      intent.includes('nekretn')
-    ) {
-      return Boolean(
-        InfinityAI.state.budget &&
-        (InfinityAI.state.rooms || InfinityAI.state.roomsNotImportant) &&
-        InfinityAI.state.searchDone &&
-        InfinityAI.state.questionCount >= this.maxQuestions
-      );
-    }
-
-    if (intent === 'rent') {
-      return Boolean(
-        InfinityAI.state.budget &&
-        (InfinityAI.state.rooms || InfinityAI.state.roomsNotImportant) &&
-        InfinityAI.state.district
-      );
-    }
-
-    if (intent === 'sell') {
-      return Boolean(ai.property_type && ai.price && ai.district);
-    }
-
-    if (intent === 'let') {
-      return Boolean(ai.property_type && ai.price && ai.district);
-    }
-
-    return false;
+  incrementQuestionCount: function() {
+    InfinityAI.state.questionCount = InfinityAI.state.questionCount || 0;
+    InfinityAI.state.questionCount++;
   },
 
   askContactFromAI: function(ai) {
@@ -703,17 +545,17 @@ window.AIChatFlow = {
       : (InfinityAI.state.rooms || '-');
 
     var preferences =
-      'Tip zahteva: ' + (ai.intent || InfinityAI.state.requestType || 'other') + '\n' +
+      'Tip zahteva: ' + (ai.intent || InfinityAI.state.requestType || 'buy') + '\n' +
       'Budžet: €' + (InfinityAI.state.budget || '-') + '\n' +
       'Broj soba: ' + roomsText + '\n' +
       'Deo grada: ' + (InfinityAI.state.district || '-') + '\n' +
       'Pronađeno objekata: ' + (InfinityAI.state.propertiesCount || 0) + '\n' +
       'Detalji: ' + (InfinityAI.state.preferences || ai.preferences || '');
 
-    var foundBlock = '';
+    var block = '';
 
     if (InfinityAI.state.searchDone) {
-      foundBlock =
+      block =
         '<h3>' +
         this.text('foundPrefix') +
         '<b>' + (InfinityAI.state.propertiesCount || 0) + '</b>' +
@@ -721,12 +563,12 @@ window.AIChatFlow = {
         '</h3>' +
         '<p>' + this.text('foundContact') + '</p>';
     } else {
-      foundBlock =
+      block =
         '<h3>' + this.text('thanksTitle') + '</h3>' +
         '<p>' + this.text('thanksContact') + '</p>';
     }
 
-    WidgetUI.setMessages(foundBlock);
+    WidgetUI.setMessages(block);
 
     setTimeout(function() {
       ContactFlow.show(preferences);
