@@ -1176,3 +1176,130 @@
 
   setPageLang('sr');
 </script>
+<script>
+(function () {
+  function ensureDialogState() {
+    if (!window.InfinityAI) return;
+
+    if (!InfinityAI.state) {
+      InfinityAI.state = {};
+    }
+
+    InfinityAI.state.dialogText = InfinityAI.state.dialogText || '';
+  }
+
+  function cleanText(html) {
+    return (html || '')
+      .toString()
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<\/h3>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
+  function addDialogLine(role, text) {
+    ensureDialogState();
+
+    text = (text || '').toString().trim();
+    if (!text) return;
+
+    if (
+      text.includes('Razmišljam') ||
+      text.includes('Thinking') ||
+      text.includes('Tražim odgovarajuće') ||
+      text.includes('Searching for suitable') ||
+      text.includes('Šaljem zahtev') ||
+      text.includes('Sending request')
+    ) {
+      return;
+    }
+
+    const label = role === 'ai' ? '🤖 AI' : '👤 Client';
+    const line = label + ': ' + text + '\n\n';
+
+    if ((InfinityAI.state.dialogText || '').includes(line)) {
+      return;
+    }
+
+    InfinityAI.state.dialogText =
+      (InfinityAI.state.dialogText || '') + line;
+  }
+
+  function extractQuestionFromWidgetHtml(html) {
+    const temp = document.createElement('div');
+    temp.innerHTML = html || '';
+
+    const bold = temp.querySelector('p b');
+    if (bold && bold.textContent.trim()) {
+      return bold.textContent.trim();
+    }
+
+    const h3 = temp.querySelector('h3');
+    if (h3 && h3.textContent.trim()) {
+      return h3.textContent.trim();
+    }
+
+    return '';
+  }
+
+  /*
+    1. Сохраняем сообщения клиента.
+  */
+  if (window.AIChatFlow && typeof AIChatFlow.processMessage === 'function') {
+    const originalProcessMessage = AIChatFlow.processMessage;
+
+    AIChatFlow.processMessage = async function(message, previousState) {
+      addDialogLine('client', message);
+      return await originalProcessMessage.call(this, message, previousState);
+    };
+  }
+
+  /*
+    2. Сохраняем вопросы AI, которые выводятся в виджет.
+  */
+  if (window.WidgetUI && typeof WidgetUI.setMessages === 'function') {
+    const originalSetMessages = WidgetUI.setMessages;
+
+    WidgetUI.setMessages = function(html) {
+      const text = extractQuestionFromWidgetHtml(html);
+
+      if (text) {
+        addDialogLine('ai', text);
+      }
+
+      return originalSetMessages.call(this, html);
+    };
+  }
+
+  /*
+    3. Перед отправкой лида добавляем dialog/chat_dialog/conversation в payload.
+  */
+  if (window.SaveLeadService && typeof SaveLeadService.save === 'function') {
+    const originalSaveLead = SaveLeadService.save;
+
+    SaveLeadService.save = async function(payload) {
+      ensureDialogState();
+
+      payload = payload || {};
+
+      const dialogText =
+        InfinityAI.state.dialogText ||
+        InfinityAI.state.preferences ||
+        payload.preferences ||
+        payload.message ||
+        '';
+
+      payload.dialog = dialogText;
+      payload.chat_dialog = dialogText;
+      payload.conversation = dialogText;
+
+      return await originalSaveLead.call(this, payload);
+    };
+  }
+})();
+</script>
+
+</body>
+</html>
