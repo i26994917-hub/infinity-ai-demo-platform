@@ -95,16 +95,82 @@ window.AIChatFlow = {
   },
 
   processMessage: async function(message, previousState) {
-    WidgetUI.setMessages('<p>' + this.text('thinking') + '</p>');
+  WidgetUI.setMessages('<p>' + this.text('thinking') + '</p>');
 
-    try {
-      const ai = await AIBrainService.send(message, previousState || {});
+  try {
+    /*
+      1. Сначала локально извлекаем параметры из сообщения,
+      НЕ дожидаясь AI Brain.
+      Это нужно, чтобы поиск запускался стабильно на SR и EN.
+    */
+    this.applyAIState(
+      {
+        intent: 'buy'
+      },
+      message,
+      previousState || {}
+    );
 
-      this.applyAIState(ai || {}, message, previousState || {});
+    /*
+      2. Если уже есть бюджет + комнаты,
+      сразу запускаем поиск по базе.
+    */
+    if (this.shouldRunSearch({ intent: 'buy' })) {
+      await this.runSearchOnly();
 
-      if (this.shouldRunSearch(ai || {})) {
-        await this.runSearchOnly();
-      }
+      return this.askContactFromAI({
+        intent: 'buy',
+        preferences: InfinityAI.state.preferences || message
+      });
+    }
+
+    /*
+      3. Если данных пока недостаточно,
+      тогда уже обращаемся к AI Brain,
+      чтобы он задал уточняющий вопрос.
+    */
+    const ai = await AIBrainService.send(message, previousState || {});
+
+    this.applyAIState(ai || {}, message, previousState || {});
+
+    /*
+      4. После ответа AI снова проверяем:
+      появились ли бюджет + комнаты.
+    */
+    if (this.shouldRunSearch({ intent: 'buy' })) {
+      await this.runSearchOnly();
+
+      return this.askContactFromAI({
+        intent: 'buy',
+        preferences: InfinityAI.state.preferences || message
+      });
+    }
+
+    var nextQuestion = this.localizeQuestion((ai && ai.next_question) || '');
+
+    if (nextQuestion && this.canAskMoreQuestions()) {
+      this.incrementQuestionCount();
+
+      return this.askNextQuestion({
+        next_question: nextQuestion
+      });
+    }
+
+    if (this.canAskMoreQuestions()) {
+      this.incrementQuestionCount();
+
+      return this.askNextQuestion({
+        next_question: this.getRequiredQuestion()
+      });
+    }
+
+    return this.askContactFromAI(ai || {});
+
+  } catch (e) {
+    console.error(e);
+    WidgetUI.setMessages('<p>' + this.text('generalError') + '</p>');
+  }
+},
 
       var nextQuestion = this.localizeQuestion((ai && ai.next_question) || '');
 
@@ -516,39 +582,16 @@ window.AIChatFlow = {
     InfinityAI.state.questionCount++;
   },
 
-  shouldRunSearch: function(ai) {
-    if (InfinityAI.state.searchDone) return false;
+ shouldRunSearch: function(ai) {
+  if (InfinityAI.state.searchDone) return false;
 
-    ai = ai || {};
+  var hasSearchParams = Boolean(
+    InfinityAI.state.budget &&
+    (InfinityAI.state.rooms || InfinityAI.state.roomsNotImportant)
+  );
 
-    var intent = (
-      ai.intent ||
-      InfinityAI.state.requestType ||
-      ''
-    ).toString().toLowerCase();
-
-    var hasBuyingIntent =
-      intent === 'buy' ||
-      intent.includes('buy') ||
-      intent.includes('purchase') ||
-      intent.includes('real_estate') ||
-      intent.includes('property') ||
-      intent.includes('apartment') ||
-      intent.includes('stan') ||
-      intent.includes('nekretn');
-
-    var hasSearchParams = Boolean(
-      InfinityAI.state.budget &&
-      (InfinityAI.state.rooms || InfinityAI.state.roomsNotImportant)
-    );
-
-    /*
-      Для демо надежность важнее идеального intent.
-      Если клиент дал бюджет + количество комнат,
-      запускаем поиск по базе.
-    */
-    return Boolean(hasSearchParams && (hasBuyingIntent || InfinityAI.state.budget));
-  },
+  return hasSearchParams;
+},
 
   runSearchOnly: async function() {
     if (InfinityAI.state.searchDone) return;
